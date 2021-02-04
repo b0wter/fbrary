@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Utilities.fs" />
+    <Compile Include="IO.fs" />
+    <Compile Include="Audiobook.fs" />
+    <Compile Include="Metadata.fs" />
+    <Compile Include="Library.fs" />
+    <Compile Include="TagLib.fs" />
+    <Compile Include="Arguments.fs" />
+    <Compile Include="Program.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Argu" Version="6.1.1" />
+    <PackageReference Include="b0wter.FSharp" Version="4.10.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="2.0.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling.JobResult" Version="2.0.0" />
+    <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
+    <PackageReference Include="TagLibSharp" Version="2.2.0" />
+  </ItemGroup>
+
+</Project>
