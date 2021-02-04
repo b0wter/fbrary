@@ -29,14 +29,20 @@ module IO =
         else
             filename.Substring(pathRoot.Length)
         
-    let getIfFile (path: string) =
-        if File.Exists(path) then Ok path
+    let getIfMp3File (path: string) =
+        if File.Exists(path) && path.EndsWith(".mp3") then Ok path
+        elif File.Exists(path) then Error "The given file exists but does not have an mp3 extension."
         elif Directory.Exists(path) then Error "The given path is a directory not a file."
         else Error "The given path does not exist."
         
     let getIfDirectory (path: string) =
         if Directory.Exists(path) then Ok path
         elif File.Exists(path) then Error "The given path is a file not a directory."
+        else Error "The given path does not exist."
+        
+    let getIfFile (path: string) =
+        if File.Exists(path) then Ok path
+        elif Directory.Exists(path) then Error "The given path is a directory not a file."
         else Error "The given path does not exist."
         
     /// Shortens a filename by consecutively removing the root path.
@@ -67,9 +73,16 @@ module IO =
             ex ->
                 Error ex.Message
                 
-    let writeTextToFile (filename: string) (text: string) =
+    let writeTextToFile (filename: string) (text: string) : Result<unit, string> =
         try
             File.WriteAllText(filename, text) |> Ok
+        with
+            ex ->
+                Error ex.Message
+                
+    let readTextFromFile (filename: string) : Result<string, string> =
+        try
+            File.ReadAllText(filename) |> Ok
         with
             ex ->
                 Error ex.Message

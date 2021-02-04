@@ -2,11 +2,10 @@ namespace b0wter.Audiobook
 
 module TagLib =
     open Metadata
-    open Audiobook
     open System
     open System.IO
     
-    let readMetaData (file: string) : Metadata =
+    let readMetaData (file: string) : Result<Metadata, string> =
         try
             do printfn "Reading metadata from %s" file
             let artists (d: TagLib.File) : string =
@@ -26,21 +25,12 @@ module TagLib =
                 Title = d.Tag.Title |> asStringOption
                 Duration = d.Properties.Duration
                 HasPicture = d.Tag.Pictures.Length > 0
-            } |> Readable
+            } |> Ok
         with
         | :? TagLib.CorruptFileException as ex ->
-            {
-                Filename = file
-                Error = ex.Message
-            } |> Unreadable
+            sprintf "%s - %s" file ex.Message |> Error
         | :? FileNotFoundException ->
-            {
-                Filename = file
-                Error = "This file could not be read by the TagLib library."
-            } |> Unreadable
+            sprintf "%s - %s" file "The given file could not be read by TagLib" |> Error
         | ex ->
-            {
-                Filename = file
-                Error = ex.Message
-            } |> Unreadable
+            sprintf "%s - %s" file ex.Message |> Error
 
