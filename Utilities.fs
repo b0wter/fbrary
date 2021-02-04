@@ -1,4 +1,4 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
 module Utilities =
     

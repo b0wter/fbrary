@@ -1,22 +1,20 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
-open System.Runtime.Serialization
-open System.Runtime.Serialization.Formatters.Binary
+open System
+open System.IO
+open System.Linq
 open FsToolkit.ErrorHandling
 
 module IO =
-    open System
-    open System.IO
-    open System.Linq
 
-    let rec filesFromDirectory (firstLevel: bool) (directory: string) : string list =
-        let files = Directory.GetFiles directory |> List.ofArray //|> Array.map (fun d -> Path.Join(directory, d)) |> List.ofArray
-        let folders = Directory.GetDirectories directory |> List.ofArray |> List.collect (filesFromDirectory false)
+    let rec filesFromDirectory (directory: string) : string list =
+        let files = Directory.GetFiles directory |> List.ofArray 
+        let folders = Directory.GetDirectories directory |> List.ofArray |> List.collect filesFromDirectory
         files @ folders
 
-    let listFiles (firstLevel: bool) (directory: string) =
+    let listFiles (directory: string) =
         if not <| Directory.Exists(directory) then Error (sprintf "The directory '%s' does not exist." directory)
-        else Ok (filesFromDirectory firstLevel directory)
+        else Ok (filesFromDirectory directory)
         
     let filterMp3Files (files: string list) : string list =
         files |> List.filter (fun f -> f.EndsWith ".mp3")

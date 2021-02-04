@@ -1,7 +1,8 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
+
+open System
 
 module Library =
-    open System
     
     type Library = {
         Audiobooks: Audiobook.Audiobook list

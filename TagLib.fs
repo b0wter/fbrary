@@ -1,9 +1,10 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
+open Metadata
+open System
+open System.IO
+    
 module TagLib =
-    open Metadata
-    open System
-    open System.IO
     
     let readMetaData (file: string) : Result<Metadata, string> =
         try

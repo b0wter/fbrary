@@ -1,10 +1,9 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
-open b0wter.Audiobook
+open System
+open b0wter.AudiobookLibrary.Utilities
 
 module Audiobook =
-    open System
-    open b0wter.Audiobook.Utilities
     
     type AudiobookSource
         = MultiFile of string list

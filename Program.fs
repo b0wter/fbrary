@@ -1,14 +1,13 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
-
+open IO
+open Argu
+open System
+open System.IO
+open FsToolkit.ErrorHandling
+open b0wter.FSharp.Operators
+ 
 module Program =
-    open IO
-    open Argu
-    open b0wter.Audiobook.TagLib
-    open System
-    open System.IO
-    open FsToolkit.ErrorHandling
-    open b0wter.FSharp.Operators
         
     let getDirectoryFromArgs (argv: string []) =
         if argv.Length = 1 then Ok argv.[0]
@@ -38,50 +37,21 @@ module Program =
         
         step [] String.Empty parts
         
-    (*
-    let printMetadataAsTable (data: Metadata list) =
-        let timespanFormat = "h\:mm"
-        let width = Console.WindowWidth
-        
-        let longestTag = ("Metadata".Length) :: (data |> List.map Metadata
-                          
-                         |> List.max
-                                                 |> List.map (function Readable r -> Some (r |> Audiobook.maxPropertyLength) | Unreadable _ -> None)
-                                                 |> List.choose id)
-        let longestDuration = ("Duration".Length) :: (data |> List.map (durationLength timespanFormat)) |> List.max
-        
-        let longestFilename = ("Filename".Length) :: (data
-                              |> List.map (fun d -> d |> maxFilenameLength))
-                              |> List.max
-                              
-        let maxFilenameWidth = width - longestTag - longestDuration - 2 - 3 - 3 - 2
-        let longestFilename = Math.Min(longestFilename, maxFilenameWidth)
-        let separatorRow = sprintf "+%s+%s+%s+" (String('-', longestFilename + 2)) (String('-', longestTag + 2)) (String('-', longestDuration + 2))
-        let trimFilename = shortenFilename maxFilenameWidth
-        
-        // Print header
-        printfn "%s" separatorRow
-        printfn "| %s | %s | %s |" ("Filename".PadRight(longestFilename)) ("Metadata".PadRight(longestTag)) ("Duration".PadRight(longestDuration))
-        printfn "%s" separatorRow
-        // Print rows
-        data |> List.iter (printMetadata longestTag longestFilename longestDuration timespanFormat separatorRow trimFilename)
-    *)
-        
     let addDirectory (path: string) = 
         result {
             let! directory = getIfDirectory path
-            let! files = directory |> (listFiles true)
+            let! files = directory |> listFiles
             do printfn "Found %i files" files.Length
             let mp3s = files |> filterMp3Files
             do printfn "Of these %i have a mp3 extension." mp3s.Length
-            let! metadata = mp3s |> List.map readMetaData |> b0wter.FSharp.Result.all
+            let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
             return! Audiobook.createFromMultiple metadata
         }
         
     let addFile (path: string) : Result<Audiobook.Audiobook, string> =
         result {
             let! filename = getIfMp3File path
-            let! metadata = filename |> readMetaData
+            let! metadata = filename |> TagLib.readMetaData
             return Audiobook.createFromSingle metadata
         }
         

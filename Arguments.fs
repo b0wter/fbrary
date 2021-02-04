@@ -1,8 +1,8 @@
-namespace b0wter.Audiobook
+namespace b0wter.AudiobookLibrary
 
+open Argu
+ 
 module Arguments =
-
-    open Argu
     
     let artistFormatString = "%artist%"
     let albumFormatString = "%album%"
