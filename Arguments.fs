@@ -18,15 +18,6 @@ module Arguments =
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
     
-    type AddArgs =
-        | Path of string
-        | File of string
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Path _ -> "Directory to add to the library. All files in the directory are treated as a single audiobook."
-                | File _ -> "Add a single file a an audiobook to the library."
-                
     type ListArgs =
         | [<MainCommand; First>] Filter of string
         | Format of string
@@ -49,7 +40,6 @@ module Arguments =
                 match s with
                 | Verbose -> "Verbose output."
                 | Library _ -> "Library file to read/write to."
-                //| Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
                 | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
                 | Add _ -> addArgumentHelp 
                 | List _ -> "List all audiobooks in the current library."
