@@ -6,7 +6,8 @@ module Metadata =
 
     type Metadata = {
         Filename: string
-        Artists: string option
+        Artist: string option
+        AlbumArtist: string option
         Album: string option
         Title: string option
         Duration: TimeSpan
@@ -14,7 +15,7 @@ module Metadata =
     }
     
     let propertyList (m: Metadata) =
-        [ m.Artists; m.Album; m.Title ] |> List.choose id
+        [ m.Artist; m.Album; m.Title ] |> List.choose id
         
     let maxPropertyLength (m: Metadata) =
         // Add an empty string so that there will be at least a single entry.

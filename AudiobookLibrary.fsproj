@@ -7,13 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Arguments.fs" />
+    <Compile Include="Config.fs" />
     <Compile Include="Utilities.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Metadata.fs" />
     <Compile Include="Audiobook.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="TagLib.fs" />
-    <Compile Include="Arguments.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

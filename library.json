@@ -1,6 +1,62 @@
 {
   "Audiobooks": [
     {
+      "Id": 10,
+      "Source": {
+        "SingleFile": "/home/b0wter/downloads/sample.mp3"
+      },
+      "Artist": "Games Music Archives",
+      "Title": "Amiga - Lotus 3 - Metal Machine",
+      "Duration": "00:03:20.3460833",
+      "HasPicture": false
+    },
+    {
+      "Id": 9,
+      "Source": {
+        "MultiFile": [
+          "/home/b0wter/downloads/sample.mp3",
+          "/home/b0wter/downloads/destination-void/003.mp3",
+          "/home/b0wter/downloads/destination-void/004.mp3",
+          "/home/b0wter/downloads/destination-void/026.mp3",
+          "/home/b0wter/downloads/destination-void/015.mp3",
+          "/home/b0wter/downloads/destination-void/010.mp3",
+          "/home/b0wter/downloads/destination-void/014.mp3",
+          "/home/b0wter/downloads/destination-void/006.mp3",
+          "/home/b0wter/downloads/destination-void/012.mp3",
+          "/home/b0wter/downloads/destination-void/008.mp3",
+          "/home/b0wter/downloads/destination-void/021.mp3",
+          "/home/b0wter/downloads/destination-void/019.mp3",
+          "/home/b0wter/downloads/destination-void/027.mp3",
+          "/home/b0wter/downloads/destination-void/028.mp3",
+          "/home/b0wter/downloads/destination-void/023.mp3",
+          "/home/b0wter/downloads/destination-void/030.mp3",
+          "/home/b0wter/downloads/destination-void/024.mp3",
+          "/home/b0wter/downloads/destination-void/031.mp3",
+          "/home/b0wter/downloads/destination-void/020.mp3",
+          "/home/b0wter/downloads/destination-void/022.mp3",
+          "/home/b0wter/downloads/destination-void/013.mp3",
+          "/home/b0wter/downloads/destination-void/017.mp3",
+          "/home/b0wter/downloads/destination-void/032.mp3",
+          "/home/b0wter/downloads/destination-void/002.mp3",
+          "/home/b0wter/downloads/destination-void/007.mp3",
+          "/home/b0wter/downloads/destination-void/005.mp3",
+          "/home/b0wter/downloads/destination-void/011.mp3",
+          "/home/b0wter/downloads/destination-void/009.mp3",
+          "/home/b0wter/downloads/destination-void/016.mp3",
+          "/home/b0wter/downloads/destination-void/029.mp3",
+          "/home/b0wter/downloads/destination-void/018.mp3",
+          "/home/b0wter/downloads/destination-void/025.mp3",
+          "/home/b0wter/downloads/destination-void/001.mp3"
+        ]
+      },
+      "Artist": "Games Music Archives",
+      "Album": "Dönerparadies",
+      "Title": "Amiga - Lotus 3 - Metal Machine",
+      "Duration": "09:44:39.7414579",
+      "HasPicture": false
+    },
+    {
+      "Id": 1,
       "Source": {
         "MultiFile": [
           "/tmp/server/audiobooks/Spiegel/004_Spiegel.mp3",
@@ -21,33 +77,36 @@
           "/tmp/server/audiobooks/Spiegel/015_Spiegel.mp3"
         ]
       },
-      "Artists": "Spiegel",
+      "Artist": "Spiegel",
       "Album": "Cixin Liu",
       "Title": "Kapitel 04",
       "Duration": "02:31:19.2764999",
       "HasPicture": true
     },
     {
+      "Id": 2,
       "Source": {
         "SingleFile": "/tmp/server/audiobooks/Artemis_Andy_Weir.mp3"
       },
-      "Artists": "Andy Weir",
+      "Artist": "Andy Weir",
       "Album": "Artemis",
       "Title": "Artemis",
       "Duration": "10:14:41.8320000",
       "HasPicture": false
     },
     {
+      "Id": 3,
       "Source": {
         "SingleFile": "/tmp/server/audiobooks/auf_der_suche_nach_der_verlorenen_zeit_01_in_swanns_welt.mp3"
       },
-      "Artists": "Marcel Proust",
+      "Artist": "Marcel Proust",
       "Album": "In Swanns Welt (Auf der Suche nach der verlorenen Zeit 1)",
       "Title": "In Swanns Welt-Auf der Suche nach der verlorenen Zeit 1",
       "Duration": "20:36:05.6653125",
       "HasPicture": false
     },
     {
+      "Id": 4,
       "Source": {
         "SingleFile": "/tmp/server/audiobooks/Alles_umsonst.mp3"
       },
@@ -55,6 +114,7 @@
       "HasPicture": false
     },
     {
+      "Id": 5,
       "Source": {
         "SingleFile": "/tmp/server/audiobooks/635_Tage_im_Eis_Die_Shackleton-Expedition.mp3"
       },
@@ -62,5 +122,5 @@
       "HasPicture": false
     }
   ],
-  "LastScanned": "2021-02-04T14:38:39.8945536+01:00"
+  "LastScanned": "2021-02-08T14:55:33.9896275+01:00"
 }

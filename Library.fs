@@ -25,9 +25,27 @@ module Library =
 
     let empty = { Audiobooks = []; LastScanned = DateTime.MinValue }
     
-    let addBook (a: Audiobook.Audiobook) (l: Library) : Library =
-        {
-            l with
-                Audiobooks = a :: (l.Audiobooks |> List.filter (not << Audiobook.isSameSource a))
-                LastScanned = DateTime.Now
-        }
+    let containsId id (l: Library) : bool =
+        l.Audiobooks |> List.map Audiobook.id |> List.contains id
+    
+    let addBook (a: Audiobook.Audiobook) (l: Library) : Result<Library, string> =
+        match l.Audiobooks |> List.tryFind (Audiobook.isSameSource a) with
+        | Some previousBook ->
+            // In case there is a book with the same source we want to reuse the previous id.
+            let a = { a with Id = previousBook.Id }
+            let otherBooks = (l.Audiobooks |> List.filter (not << Audiobook.isSameSource a))
+            if otherBooks |> List.map Audiobook.id |> List.contains a.Id then Error "The audiobook could not be added to the library because its id is already taken."
+            else
+                {
+                    l with
+                        Audiobooks = a :: otherBooks
+                        LastScanned = DateTime.Now
+                } |> Ok
+        | None ->
+            if l.Audiobooks |> List.map Audiobook.id |> List.contains a.Id then Error "The audiobook could not be added to the library because its id is already taken."
+            else
+                {
+                    l with
+                        Audiobooks = a :: l.Audiobooks
+                        LastScanned = DateTime.Now
+                } |> Ok

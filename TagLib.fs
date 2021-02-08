@@ -9,11 +9,15 @@ module TagLib =
     let readMetaData (file: string) : Result<Metadata, string> =
         try
             do printfn "Reading metadata from %s" file
-            let artists (d: TagLib.File) : string =
-                let items = seq { d.Tag.JoinedComposers; d.Tag.JoinedPerformers; d.Tag.JoinedAlbumArtists }
-                            |> Seq.filter (not << String.IsNullOrWhiteSpace)
-                            |> Seq.distinct
-                String.Join(", ", items)
+            
+            let joinField (fields: string []) : string option =
+                let filteredFields = fields |> Array.filter (not << String.IsNullOrWhiteSpace)
+                if filteredFields.Length = 0 then None
+                else String.Join(", ", filteredFields) |> Some
+                
+            let artists (d: TagLib.File) : string option = joinField d.Tag.Performers
+                
+            let albumArtists (d: TagLib.File) : string option = joinField d.Tag.AlbumArtists
                 
             let asStringOption (s: string) =
                 if String.IsNullOrWhiteSpace(s) then None else Some s
@@ -21,8 +25,9 @@ module TagLib =
             let d = TagLib.File.Create(file)
             {
                 Filename = d.Name
-                Artists = d |> artists |> asStringOption 
+                Artist = d |> artists
                 Album = d.Tag.Album |> asStringOption
+                AlbumArtist = d |> albumArtists
                 Title = d.Tag.Title |> asStringOption
                 Duration = d.Properties.Duration
                 HasPicture = d.Tag.Pictures.Length > 0

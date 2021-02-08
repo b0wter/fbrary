@@ -37,7 +37,7 @@ module Program =
         
         step [] String.Empty parts
         
-    let addDirectory (path: string) = 
+    let addDirectory (config: Config.Config) (path: string) (idGenerator: unit -> int) = 
         result {
             let! directory = getIfDirectory path
             let! files = directory |> listFiles
@@ -45,21 +45,21 @@ module Program =
             let mp3s = files |> filterMp3Files
             do printfn "Of these %i have a mp3 extension." mp3s.Length
             let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
-            return! Audiobook.createFromMultiple metadata
+            return! Audiobook.createFromMultiple config idGenerator metadata
         }
         
-    let addFile (path: string) : Result<Audiobook.Audiobook, string> =
+    let addFile (config: Config.Config) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         result {
             let! filename = getIfMp3File path
             let! metadata = filename |> TagLib.readMetaData
-            return Audiobook.createFromSingle metadata
+            return Audiobook.createFromSingle config idGenerator metadata
         }
         
-    let addPath (path: string) : Result<Audiobook.Audiobook, string> =
+    let addPath (config: Config.Config) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         if File.Exists(path) then
-            addFile path
+            addFile config path idGenerator
         elif Directory.Exists(path) then
-            addDirectory path
+            addDirectory config path idGenerator
         else
             Error "The given path does not exist."
             
@@ -84,50 +84,61 @@ module Program =
             
     let formattedAudiobook (format: string) (a: Audiobook.Audiobook) : string =
         format
-            .Replace(Arguments.artistFormatString, a.Artists |?| "<unknown artist>")
+            .Replace(Arguments.artistFormatString, a.Artist |?| "<unknown artist>")
             .Replace(Arguments.albumFormatString, a.Album |?| "<unknown album>")
             .Replace(Arguments.titleFormatString, a.Title |?| "<unknown title>")
             .Replace(Arguments.durationFormatString, a.Duration.ToString("h\:mm"))
+            .Replace(Arguments.idFormatString, a.Id.ToString())
         
+    let idGenerator (library: Library.Library) : (unit -> int) =
+        let mutable counter = library.Audiobooks |> List.map (fun a -> a.Id) |> List.max
+        fun () ->
+            do counter <- (counter + 1)
+            counter
+            
+    let add (library: Library.Library) (idGenerator: (unit -> int)) (addConfig: Config.AddConfig) (config: Config.Config) : Result<int, string> =
+        result {
+            let! audiobook = addPath config addConfig.Path idGenerator
+            let! updatedLibrary = library |> Library.addBook audiobook
+            do! updatedLibrary |> Library.serialize |> writeTextToFile config.LibraryFile
+            return 0
+        }
+        
+    let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
+        result {
+            match! readLibraryIfExisting libraryFile with
+            | Some l ->
+                let filtered = if listConfig.Filter |> String.IsNullOrWhiteSpace then l.Audiobooks
+                               else l.Audiobooks |> List.filter (Audiobook.containsString listConfig.Filter)
+                do if filtered.IsEmpty then do printfn "No audiobook contained '%s' in its metadata." listConfig.Filter
+                   else do filtered |> List.iter (fun f -> printfn "%s" (f |> formattedAudiobook listConfig.Format))
+                return 0
+            | None ->
+                return! (Error "The given library file does not exist. There is nothing to list.")
+        }
+    
     [<EntryPoint>]
     let main argv =
         let r = result {
             let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
             let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
             let results = parser.ParseCommandLine(inputs = argv, raiseOnUsage = true)
-            let format = results.TryGetResult(<@ Arguments.Format @>) |> Option.flatten |?| Arguments.defaultFormatString
+            let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
             
-            match results.GetAllResults() with
-            | [ Arguments.Library libraryFile; Arguments.Add path ] ->
-                let! library = readOrCreateLibrary libraryFile
-                let! audiobook = addPath path
-                let updatedLibrary = library |> Library.addBook audiobook
-                do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
-                return 0
-            | [ Arguments.Add _ ] ->
-                do printfn "The library parameter is missing."
-                printfn "%s" (parser.PrintUsage())
+            match config.Command with
+            | Config.Add addConfig ->
+                let! library = readOrCreateLibrary config.LibraryFile
+                let idGenerator = idGenerator library
+                return! add library idGenerator addConfig config
+            | Config.List listConfig ->
+                return! list config.LibraryFile listConfig
+            | Config.Rescan rescanConfig ->
+                failwith "not implemented"
                 return 1
-            | [ Arguments.Library libraryFile; Arguments.List pattern ]
-            | [ Arguments.Library libraryFile; Arguments.Format _; Arguments.List pattern ]
-            | [ Arguments.Format _; Arguments.Library libraryFile; Arguments.List pattern ] ->
-                match! readLibraryIfExisting libraryFile with
-                | Some l ->               
-                    let pattern = match pattern with
-                                  | Some "*" -> ""
-                                  | Some s -> s
-                                  | None -> ""
-                    let filtered = l.Audiobooks |> List.filter (Audiobook.containsString pattern)
-                    do if filtered.IsEmpty then do printfn "No audiobook contained '%s' in its metadata." pattern
-                       else do filtered |> List.iter (fun f -> printfn "%s" (f |> formattedAudiobook format))
-                    return 0
-                | None ->
-                    return! (Error "The given library file does not exist. There is nothing to list.")
-            | [ Arguments.List _ ] ->
-                do printfn "The library parameter is missing."
-                printfn "%s" (parser.PrintUsage())
+            | Config.Update updateConfig ->
+                failwith "not implemented"
                 return 1
-            | _ ->
+            | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1
         }

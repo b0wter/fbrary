@@ -8,9 +8,10 @@ module Arguments =
     let albumFormatString = "%album%"
     let titleFormatString = "%title%"
     let durationFormatString = "%duration%"
-    let formatStringList = [artistFormatString; albumFormatString; titleFormatString; durationFormatString]
-    let formattedFormatStringList = sprintf "%s, %s, %s, %s" artistFormatString albumFormatString titleFormatString durationFormatString
-    let defaultFormatString = sprintf "%s - %s - %s - %s" titleFormatString artistFormatString albumFormatString durationFormatString
+    let idFormatString = "%id%"
+    
+    let formattedFormatStringList = sprintf "%s, %s, %s, %s, %s" artistFormatString albumFormatString titleFormatString durationFormatString idFormatString
+    let defaultFormatString = sprintf "(%s) %s - %s - %s - %s" idFormatString titleFormatString artistFormatString albumFormatString durationFormatString
     
     let addArgumentHelp = "Add the file or directly to the library. " +
                           "Note that all files inside a folder are interpreted as a single audiobook. " +
@@ -27,25 +28,32 @@ module Arguments =
                 | File _ -> "Add a single file a an audiobook to the library."
                 
     type ListArgs =
-        | Filter of string
+        | [<MainCommand; First>] Filter of string
+        | Format of string
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
+                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
         
     type MainArgs =
-        | [<AltCommandLine("-v")>] Verbose
-        | [<AltCommandLine("-l")>] Library of string
-        | [<AltCommandLine("-f")>] Format of string option
+        | [<AltCommandLine("-V")>] Verbose
+        | [<AltCommandLine("-l"); Mandatory>] Library of string
+        | [<AltCommandLine("-n")>] NonInteractive
         | [<Last; CliPrefix(CliPrefix.None)>] Add of string
-        | [<Last; CliPrefix(CliPrefix.None)>] List of string option
+        | [<Last; CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
+        | [<Last; CliPrefix(CliPrefix.None)>] Rescan of string
+        | [<Last; CliPrefix(CliPrefix.None)>] Update of int
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Add _ -> addArgumentHelp 
-                | List _ -> "List all audiobooks in the current library."
                 | Verbose -> "Verbose output."
                 | Library _ -> "Library file to read/write to."
-                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
+                //| Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
+                | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
+                | Add _ -> addArgumentHelp 
+                | List _ -> "List all audiobooks in the current library."
+                | Rescan _ -> "Read the metadata from the files again and update the library contents."
+                | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
                 
 
