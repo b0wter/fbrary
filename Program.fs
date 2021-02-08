@@ -105,12 +105,25 @@ module Program =
         }
         
     let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
+        let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
+        let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.Completed = false
+        let filterPredicate pattern = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString pattern
+        let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted with
+                         | "", false, false -> [ fun _ -> true ]
+                         | "", true, false -> [ unratedPredicate ]
+                         | "", false, true -> [ notCompletedPredicate ]
+                         | "", true, true -> [ unratedPredicate; notCompletedPredicate ]
+                         | s, false, false -> [ filterPredicate s ]
+                         | s, true, false -> [ filterPredicate s; unratedPredicate ]
+                         | s, false, true -> [ filterPredicate s; notCompletedPredicate ]
+                         | s, true, true -> [ filterPredicate s; unratedPredicate; notCompletedPredicate ]
+        let combinedPredicate a = List.forall (fun p -> a |> p) predicates
+        
         result {
             match! readLibraryIfExisting libraryFile with
             | Some l ->
-                let filtered = if listConfig.Filter |> String.IsNullOrWhiteSpace then l.Audiobooks
-                               else l.Audiobooks |> List.filter (Audiobook.containsString listConfig.Filter)
-                do if filtered.IsEmpty then do printfn "No audiobook contained '%s' in its metadata." listConfig.Filter
+                let filtered = l.Audiobooks |> List.filter combinedPredicate
+                do if filtered.IsEmpty then do printfn "Found no matching audio books."
                    else do filtered |> List.iter (fun f -> printfn "%s" (f |> formattedAudiobook listConfig.Format))
                 return 0
             | None ->
@@ -164,6 +177,16 @@ module Program =
                 do printfn "%s" text                  
             return 0
         }
+        
+    let completedStatus libraryFile id status = //(completedConfig: Config.CompletedConfig) =
+        result {
+            let! library = Library.fromFile libraryFile
+            let! book = Library.findById id library
+            let updatedBook = { book with Completed = status }
+            let! updatedLibrary = library |> Library.addBook updatedBook
+            do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
+            return 0
+        }
     
     [<EntryPoint>]
     let main argv =
@@ -188,6 +211,10 @@ module Program =
                 return 1
             | Config.Rate rateConfig ->
                 return! rate config.LibraryFile rateConfig.Id
+            | Config.Completed completedConfig ->
+                return! completedStatus config.LibraryFile completedConfig.Id true
+            | Config.NotCompleted notCompletedConfig ->
+                return! completedStatus config.LibraryFile notCompletedConfig.Id false
             | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1

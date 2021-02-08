@@ -23,11 +23,17 @@ module Arguments =
     type ListArgs =
         | [<MainCommand; First>] Filter of string
         | Format of string
+        | Unrated
+        | NotCompleted
+        | Completed
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
                 | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
+                | Unrated -> "Only list books that have not yet been rated."
+                | NotCompleted -> "Only list books that have not yet been completely listened to."
+                | Completed -> "Only list books that have been completely listened to."
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
@@ -38,6 +44,8 @@ module Arguments =
         | [<Last; CliPrefix(CliPrefix.None)>] Rescan of string
         | [<Last; CliPrefix(CliPrefix.None)>] Update of int
         | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
+        | [<Last; CliPrefix(CliPrefix.None)>] Completed of int
+        | [<Last; CliPrefix(CliPrefix.None)>] NotCompleted of int
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -49,5 +57,7 @@ module Arguments =
                 | Rescan _ -> "Read the metadata from the files again and update the library contents."
                 | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
                 | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
+                | Completed _ -> "Mark the book with the given id as completely listened to."
+                | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
                 
 

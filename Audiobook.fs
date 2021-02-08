@@ -25,6 +25,7 @@ module Audiobook =
         HasPicture: bool
         Comment: string option
         Rating: int option
+        Completed: bool
     }
     
     //
@@ -39,6 +40,7 @@ module Audiobook =
     let hasPicture a = a.HasPicture
     let comment a = a.Comment
     let rating a = a.Rating
+    let completed a = a.Completed
     
     //
     // Functions for updating the properties of an audiobook.
@@ -67,6 +69,7 @@ module Audiobook =
             HasPicture = hasPicture
             Comment = comment
             Rating = rating
+            Completed = false
         }
     
     let createInteractive source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =

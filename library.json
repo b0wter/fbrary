@@ -24,10 +24,9 @@
       },
       "Artist": "Cixin Liu",
       "Album": "Spiegel",
-      "Title": "Kapitel 04",
       "Duration": "02:31:19.2764999",
       "HasPicture": true,
-      "Rating": 7
+      "Completed": false
     },
     {
       "Id": 2,
@@ -40,7 +39,8 @@
       "Title": "Hyperion",
       "Duration": "20:45:00.9120000",
       "HasPicture": true,
-      "Rating": 8
+      "Rating": 8,
+      "Completed": false
     },
     {
       "Id": 3,
@@ -53,7 +53,8 @@
       "Title": "The Fall of Hyperion",
       "Duration": "21:45:34.8280000",
       "HasPicture": true,
-      "Rating": 8
+      "Rating": 8,
+      "Completed": false
     },
     {
       "Id": 4,
@@ -65,8 +66,9 @@
       "Title": "Armada",
       "Duration": "11:50:59.0580000",
       "HasPicture": true,
-      "Rating": 3
+      "Rating": 3,
+      "Completed": false
     }
   ],
-  "LastScanned": "2021-02-08T23:47:39.2813178+01:00"
+  "LastScanned": "2021-02-09T00:33:57.5453532+01:00"
 }
