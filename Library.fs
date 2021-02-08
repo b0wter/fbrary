@@ -1,6 +1,7 @@
 namespace b0wter.AudiobookLibrary
 
 open System
+open FsToolkit.ErrorHandling
 
 module Library =
     
@@ -49,3 +50,17 @@ module Library =
                         Audiobooks = a :: l.Audiobooks
                         LastScanned = DateTime.Now
                 } |> Ok
+                
+    let tryFind (predicate: Audiobook.Audiobook -> bool) (l: Library) : Audiobook.Audiobook option =
+        l.Audiobooks |> List.tryFind predicate
+        
+    let tryFindById (id: int) =
+        tryFind (fun (a: Audiobook.Audiobook) -> a.Id = id)
+        
+    /// Reads a text file and deserializes a `Library` instance.
+    /// Returns errors if the given file does not exist, is not readable or the json is invalid.
+    let fromFile filename : Result<Library, string> =
+        result {
+            let! content = IO.readTextFromFile filename
+            return! deserialize content
+        }

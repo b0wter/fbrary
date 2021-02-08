@@ -12,6 +12,7 @@ module Metadata =
         Title: string option
         Duration: TimeSpan
         HasPicture: bool
+        Comment: string option
     }
     
     let propertyList (m: Metadata) =

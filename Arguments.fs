@@ -9,8 +9,10 @@ module Arguments =
     let titleFormatString = "%title%"
     let durationFormatString = "%duration%"
     let idFormatString = "%id%"
+    let ratingFormatString = "%rating%"
+    let commentFormatString = "%comment%"
     
-    let formattedFormatStringList = sprintf "%s, %s, %s, %s, %s" artistFormatString albumFormatString titleFormatString durationFormatString idFormatString
+    let formattedFormatStringList = sprintf "%s, %s, %s, %s, %s, %s, %s" artistFormatString albumFormatString titleFormatString durationFormatString idFormatString ratingFormatString commentFormatString
     let defaultFormatString = sprintf "(%s) %s - %s - %s - %s" idFormatString titleFormatString artistFormatString albumFormatString durationFormatString
     
     let addArgumentHelp = "Add the file or directly to the library. " +
@@ -35,6 +37,7 @@ module Arguments =
         | [<Last; CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
         | [<Last; CliPrefix(CliPrefix.None)>] Rescan of string
         | [<Last; CliPrefix(CliPrefix.None)>] Update of int
+        | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -45,5 +48,6 @@ module Arguments =
                 | List _ -> "List all audiobooks in the current library."
                 | Rescan _ -> "Read the metadata from the files again and update the library contents."
                 | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
+                | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
                 
 

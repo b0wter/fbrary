@@ -31,6 +31,7 @@ module TagLib =
                 Title = d.Tag.Title |> asStringOption
                 Duration = d.Properties.Duration
                 HasPicture = d.Tag.Pictures.Length > 0
+                Comment = d.Tag.Comment |> asStringOption
             } |> Ok
         with
         | :? TagLib.CorruptFileException as ex ->

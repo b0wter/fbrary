@@ -22,11 +22,16 @@ module Config =
         Id: int
     }
     
+    type RateConfig = {
+        Id: int option
+    }
+    
     type Command
         = Add of AddConfig
         | List of ListConfig
         | Rescan of RescanConfig
         | Update of UpdateConfig
+        | Rate of RateConfig
         | Uninitialized
     
     type Config = {
@@ -58,10 +63,12 @@ module Config =
             { config with Command = Update { Id = id } }
         | MainArgs.Add path ->
             { config with Command = Add { Path = path } }
+        | MainArgs.Rate id ->
+            { config with Command = Rate { Id = id } }
         | MainArgs.List l ->
             let listConfig = match config.Command with
                              | List c -> c
-                             | Add _ | Rescan _ | Update _ | Uninitialized -> emptyListConfig
+                             | Add _ | Rescan _ | Update _ | Uninitialized | Rate _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             { config with Command = List updatedListConfig }
                    

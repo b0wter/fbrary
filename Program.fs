@@ -116,6 +116,54 @@ module Program =
             | None ->
                 return! (Error "The given library file does not exist. There is nothing to list.")
         }
+        
+    let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
+            
+        let rateSingleBook (a: Audiobook.Audiobook) =
+            let input () =
+                let mutable breaker = true
+                let mutable rating = 0
+                while breaker do
+                    let userInput = Console.ReadLine()
+                    match b0wter.FSharp.Parsers.parseInt userInput with
+                    | Some int ->
+                        rating <- int
+                        breaker <- false
+                    | None ->
+                        ()
+                rating
+            
+            let x = match (a.Artist, a.Album, a.Title) with
+                    | Some artist, Some album, _ -> sprintf "'%s' (%s)" album artist
+                    | Some artist, _, Some title -> sprintf "'%s' (%s)" title artist
+                    | Some artist, _, _ -> sprintf "'%s' (%s)" (a.Source |> Audiobook.sourceAsString) artist
+                    | _, _, _ -> sprintf "'%s'" (a.Source |> Audiobook.sourceAsString)
+            do printfn "Please enter a rating from 1-10 for %s" x
+            let rating = input ()
+            { a with Rating = Some rating }
+            
+        result {
+            let! library = Library.fromFile libraryFile
+            
+            let predicate = match bookId with
+                            | Some i -> fun (a: Audiobook.Audiobook) -> a.Id = i
+                            | None -> fun (a: Audiobook.Audiobook) -> a.Rating = None
+                            
+            let books = library.Audiobooks |> Utilities.List.splitBy predicate
+            
+            if books.Matching.Length > 0 then
+                let updatedBooks = books.Matching |> List.map rateSingleBook
+                let mergedBooks = (updatedBooks @ books.NonMatching) |> List.sortBy (fun a -> a.Id)
+                
+                let updatedLibrary = { library with Audiobooks = mergedBooks }
+                do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
+            else
+                let text = match bookId with
+                           | Some i -> sprintf "There is no book with the id '%i'." i
+                           | None -> sprintf "All books have ratings. If you want to change a rating please specify a book id."
+                do printfn "%s" text                  
+            return 0
+        }
     
     [<EntryPoint>]
     let main argv =
@@ -138,6 +186,8 @@ module Program =
             | Config.Update updateConfig ->
                 failwith "not implemented"
                 return 1
+            | Config.Rate rateConfig ->
+                return! rate config.LibraryFile rateConfig.Id
             | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1

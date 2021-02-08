@@ -79,8 +79,11 @@ module IO =
                 Error ex.Message
                 
     let readTextFromFile (filename: string) : Result<string, string> =
-        try
-            File.ReadAllText(filename) |> Ok
-        with
-            ex ->
-                Error ex.Message
+        if File.Exists(filename) then
+            try
+                File.ReadAllText(filename) |> Ok
+            with
+                ex ->
+                    Error ex.Message
+        else
+            Error (sprintf "The file '%s' does not exist." filename)

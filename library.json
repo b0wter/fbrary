@@ -1,61 +1,6 @@
 {
   "Audiobooks": [
     {
-      "Id": 10,
-      "Source": {
-        "SingleFile": "/home/b0wter/downloads/sample.mp3"
-      },
-      "Artist": "Games Music Archives",
-      "Title": "Amiga - Lotus 3 - Metal Machine",
-      "Duration": "00:03:20.3460833",
-      "HasPicture": false
-    },
-    {
-      "Id": 9,
-      "Source": {
-        "MultiFile": [
-          "/home/b0wter/downloads/sample.mp3",
-          "/home/b0wter/downloads/destination-void/003.mp3",
-          "/home/b0wter/downloads/destination-void/004.mp3",
-          "/home/b0wter/downloads/destination-void/026.mp3",
-          "/home/b0wter/downloads/destination-void/015.mp3",
-          "/home/b0wter/downloads/destination-void/010.mp3",
-          "/home/b0wter/downloads/destination-void/014.mp3",
-          "/home/b0wter/downloads/destination-void/006.mp3",
-          "/home/b0wter/downloads/destination-void/012.mp3",
-          "/home/b0wter/downloads/destination-void/008.mp3",
-          "/home/b0wter/downloads/destination-void/021.mp3",
-          "/home/b0wter/downloads/destination-void/019.mp3",
-          "/home/b0wter/downloads/destination-void/027.mp3",
-          "/home/b0wter/downloads/destination-void/028.mp3",
-          "/home/b0wter/downloads/destination-void/023.mp3",
-          "/home/b0wter/downloads/destination-void/030.mp3",
-          "/home/b0wter/downloads/destination-void/024.mp3",
-          "/home/b0wter/downloads/destination-void/031.mp3",
-          "/home/b0wter/downloads/destination-void/020.mp3",
-          "/home/b0wter/downloads/destination-void/022.mp3",
-          "/home/b0wter/downloads/destination-void/013.mp3",
-          "/home/b0wter/downloads/destination-void/017.mp3",
-          "/home/b0wter/downloads/destination-void/032.mp3",
-          "/home/b0wter/downloads/destination-void/002.mp3",
-          "/home/b0wter/downloads/destination-void/007.mp3",
-          "/home/b0wter/downloads/destination-void/005.mp3",
-          "/home/b0wter/downloads/destination-void/011.mp3",
-          "/home/b0wter/downloads/destination-void/009.mp3",
-          "/home/b0wter/downloads/destination-void/016.mp3",
-          "/home/b0wter/downloads/destination-void/029.mp3",
-          "/home/b0wter/downloads/destination-void/018.mp3",
-          "/home/b0wter/downloads/destination-void/025.mp3",
-          "/home/b0wter/downloads/destination-void/001.mp3"
-        ]
-      },
-      "Artist": "Games Music Archives",
-      "Album": "Dönerparadies",
-      "Title": "Amiga - Lotus 3 - Metal Machine",
-      "Duration": "09:44:39.7414579",
-      "HasPicture": false
-    },
-    {
       "Id": 1,
       "Source": {
         "MultiFile": [
@@ -77,50 +22,51 @@
           "/tmp/server/audiobooks/Spiegel/015_Spiegel.mp3"
         ]
       },
-      "Artist": "Spiegel",
-      "Album": "Cixin Liu",
+      "Artist": "Cixin Liu",
+      "Album": "Spiegel",
       "Title": "Kapitel 04",
       "Duration": "02:31:19.2764999",
-      "HasPicture": true
+      "HasPicture": true,
+      "Rating": 7
     },
     {
       "Id": 2,
       "Source": {
-        "SingleFile": "/tmp/server/audiobooks/Artemis_Andy_Weir.mp3"
+        "SingleFile": "/home/b0wter/downloads/Hörbuch/01_hyperion.mp3"
       },
-      "Artist": "Andy Weir",
-      "Album": "Artemis",
-      "Title": "Artemis",
-      "Duration": "10:14:41.8320000",
-      "HasPicture": false
+      "Artist": "Dan Simmons",
+      "Album": "Hyperion",
+      "AlbumArtist": "Hyperion 1",
+      "Title": "Hyperion",
+      "Duration": "20:45:00.9120000",
+      "HasPicture": true,
+      "Rating": 8
     },
     {
       "Id": 3,
       "Source": {
-        "SingleFile": "/tmp/server/audiobooks/auf_der_suche_nach_der_verlorenen_zeit_01_in_swanns_welt.mp3"
+        "SingleFile": "/home/b0wter/downloads/Hörbuch/02_the_fall_of_hyperion.mp3"
       },
-      "Artist": "Marcel Proust",
-      "Album": "In Swanns Welt (Auf der Suche nach der verlorenen Zeit 1)",
-      "Title": "In Swanns Welt-Auf der Suche nach der verlorenen Zeit 1",
-      "Duration": "20:36:05.6653125",
-      "HasPicture": false
+      "Artist": "Dan Simmons",
+      "Album": "The Fall of Hyperion",
+      "AlbumArtist": "Hyperion 2",
+      "Title": "The Fall of Hyperion",
+      "Duration": "21:45:34.8280000",
+      "HasPicture": true,
+      "Rating": 8
     },
     {
       "Id": 4,
       "Source": {
-        "SingleFile": "/tmp/server/audiobooks/Alles_umsonst.mp3"
+        "SingleFile": "/home/b0wter/downloads/Hörbuch/armada.mp3"
       },
-      "Duration": "23:46:08.1839999",
-      "HasPicture": false
-    },
-    {
-      "Id": 5,
-      "Source": {
-        "SingleFile": "/tmp/server/audiobooks/635_Tage_im_Eis_Die_Shackleton-Expedition.mp3"
-      },
-      "Duration": "23:21:56.2140000",
-      "HasPicture": false
+      "Artist": "Ernest Cline",
+      "Album": "Armada",
+      "Title": "Armada",
+      "Duration": "11:50:59.0580000",
+      "HasPicture": true,
+      "Rating": 3
     }
   ],
-  "LastScanned": "2021-02-08T14:55:33.9896275+01:00"
+  "LastScanned": "2021-02-08T23:47:39.2813178+01:00"
 }

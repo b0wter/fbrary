@@ -10,6 +10,10 @@ module Audiobook =
         = MultiFile of string list
         | SingleFile of string
         
+    let sourceAsString = function
+        | MultiFile files -> (files |> List.head) + (sprintf " + %i more" (files.Length - 1))
+        | SingleFile file -> file
+        
     type Audiobook = {
         Id: int
         Source: AudiobookSource
@@ -51,7 +55,7 @@ module Audiobook =
     //
     // Other functions.
     //
-    let createWith source artists album albumArtist title duration hasPicture (idGenerator: unit -> int) comment rating =
+    let createWith source artists album albumArtist title duration hasPicture comment (idGenerator: unit -> int) rating =
         {
             Id = idGenerator ()
             Source = source
@@ -65,7 +69,7 @@ module Audiobook =
             Rating = rating
         }
     
-    let createInteractive source artist album albumArtist title duration hasPicture (idGenerator: unit -> int) =
+    let createInteractive source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
         let filename = match source with SingleFile f -> f | MultiFile m -> m |> List.tryHead |> Option.getOrElse "<no filename>"
         let readFromInput (fieldName: string) (value: string option) : string option =
             let nonOptionValue = match value with Some s -> s | None -> String.Empty
@@ -93,26 +97,55 @@ module Audiobook =
         let album = readFromInput "Album" album
         let albumArtist = readFromInput "Album Artist" albumArtist
         let title = readFromInput "Title" title
+        let comment = readFromInput "Comment" comment
                 
-        createWith source artist album albumArtist title duration hasPicture idGenerator None None
+        createWith source artist album albumArtist title duration hasPicture comment idGenerator None
         
-    let createWithPossibleInteraction (config: Config.Config) source artist album albumArtist title duration hasPicture (idGenerator: unit -> int) =
+    let createWithPossibleInteraction (config: Config.Config) source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
         if config.NonInteractive then
-            createWith source artist album albumArtist title duration hasPicture idGenerator None None
+            createWith source artist album albumArtist title duration hasPicture comment idGenerator None
         else
-            createInteractive source artist album albumArtist title duration hasPicture idGenerator
+            createInteractive source artist album albumArtist title duration hasPicture comment idGenerator
         
     /// Creates an audiobook for a single file.
     let createFromSingle config idGenerator (m: Metadata.Metadata) =
-        createWithPossibleInteraction config (SingleFile m.Filename) m.Artist m.Album m.AlbumArtist m.Title m.Duration m.HasPicture idGenerator
+        createWithPossibleInteraction
+            config
+            (SingleFile m.Filename)
+            m.Artist
+            m.Album
+            m.AlbumArtist
+            m.Title
+            m.Duration
+            m.HasPicture
+            m.Comment
+            idGenerator
         
     /// Creates an audiobook for a list of files.
     let createFromMultiple config (idGenerator: unit -> int) (mm: Metadata.Metadata list) : Result<Audiobook, string> =
+        // If multiple input files are given there is no proper way to
+        // select the matching title if there is more than one.
+        let selectedTitle =
+            let distinct = mm |> List.map (fun m -> m.Title) |> List.choose FSharp.Core.Operators.id |> List.distinct
+            if distinct.Length > 1 then None
+            else Some distinct.Head
+            
         match mm with
         | [] -> Error "Cannot create an audiobook from an empty source."
         | head :: _ ->
             let duration = mm |> List.fold (fun (aggregator: TimeSpan) (next: Metadata.Metadata) -> aggregator.Add(next.Duration)) TimeSpan.Zero
-            createWithPossibleInteraction config (mm |> List.map (fun m -> m.Filename) |> MultiFile) head.Artist head.Album head.AlbumArtist head.Title duration head.HasPicture idGenerator |> Ok
+            createWithPossibleInteraction
+                config
+                (mm |> List.map (fun m -> m.Filename) |> MultiFile)
+                head.Artist
+                head.Album
+                head.AlbumArtist
+                selectedTitle 
+                duration
+                head.HasPicture
+                head.Comment
+                idGenerator
+            |> Ok
         
     let properties (a: Audiobook) =
         [ a.Album; a.Artist; a.Title ] |> List.choose FSharp.Core.Operators.id
