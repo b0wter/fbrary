@@ -41,7 +41,7 @@ module Arguments =
         | [<AltCommandLine("-n")>] NonInteractive
         | [<Last; CliPrefix(CliPrefix.None)>] Add of string
         | [<Last; CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
-        | [<Last; CliPrefix(CliPrefix.None)>] Rescan of string
+        | [<Last; CliPrefix(CliPrefix.None)>] Remove of int
         | [<Last; CliPrefix(CliPrefix.None)>] Update of int
         | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
         | [<Last; CliPrefix(CliPrefix.None)>] Completed of int
@@ -54,7 +54,7 @@ module Arguments =
                 | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
                 | Add _ -> addArgumentHelp 
                 | List _ -> "List all audiobooks in the current library."
-                | Rescan _ -> "Read the metadata from the files again and update the library contents."
+                | Remove _ -> "Removes an audio book from the library."
                 | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
                 | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
                 | Completed _ -> "Mark the book with the given id as completely listened to."

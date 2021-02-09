@@ -83,11 +83,17 @@ module Program =
             Ok None
             
     let formattedAudiobook (format: string) (a: Audiobook.Audiobook) : string =
+        let ratingFormatter (i: int option) : string =
+            match i with
+            | Some int -> sprintf "%i/10" int
+            | None -> "<unrated>"
         format
             .Replace(Arguments.artistFormatString, a.Artist |?| "<unknown artist>")
             .Replace(Arguments.albumFormatString, a.Album |?| "<unknown album>")
             .Replace(Arguments.titleFormatString, a.Title |?| "<unknown title>")
             .Replace(Arguments.durationFormatString, a.Duration.ToString("h\:mm"))
+            .Replace(Arguments.ratingFormatString, a.Rating |> ratingFormatter)
+            .Replace(Arguments.commentFormatString, a.Comment |?| "<no comment>")
             .Replace(Arguments.idFormatString, a.Id.ToString())
         
     let idGenerator (library: Library.Library) : (unit -> int) =
@@ -101,6 +107,18 @@ module Program =
             let! audiobook = addPath config addConfig.Path idGenerator
             let! updatedLibrary = library |> Library.addBook audiobook
             do! updatedLibrary |> Library.serialize |> writeTextToFile config.LibraryFile
+            return 0
+        }
+            
+    let remove (libraryFile: string) (removeConfig: Config.RemoveConfig) : Result<int, string> =
+        result {
+            let! library = Library.fromFile libraryFile
+            let! audiobook = library |> Library.findById removeConfig.Id
+            let updatedLibrary = library |> Library.removeBook audiobook
+            if updatedLibrary.Audiobooks.Length = library.Audiobooks.Length then
+                do printfn "No audio book has the id '%i'. The library has not been modified." removeConfig.Id
+            else
+                do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
             return 0
         }
         
@@ -132,18 +150,25 @@ module Program =
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
             
-        let rateSingleBook (a: Audiobook.Audiobook) =
+        let rateSingleBook (a: Audiobook.Audiobook) : Audiobook.Audiobook =
             let input () =
                 let mutable breaker = true
-                let mutable rating = 0
+                let mutable rating = None
                 while breaker do
                     let userInput = Console.ReadLine()
-                    match b0wter.FSharp.Parsers.parseInt userInput with
-                    | Some int ->
-                        rating <- int
+                    if userInput |> String.IsNullOrWhiteSpace then
+                        do printfn "You did not enter a rating. The item will be skipped."
+                        rating <- None
                         breaker <- false
-                    | None ->
-                        ()
+                    else
+                        match b0wter.FSharp.Parsers.parseInt userInput with
+                        | Some int when int <= 10 && int > 0 ->
+                            rating <- Some int
+                            breaker <- false
+                        | Some int ->
+                            do printfn "The number '%i' is out of range." int
+                        | None ->
+                            do printfn "The input is not a valid number."
                 rating
             
             let x = match (a.Artist, a.Album, a.Title) with
@@ -151,9 +176,12 @@ module Program =
                     | Some artist, _, Some title -> sprintf "'%s' (%s)" title artist
                     | Some artist, _, _ -> sprintf "'%s' (%s)" (a.Source |> Audiobook.sourceAsString) artist
                     | _, _, _ -> sprintf "'%s'" (a.Source |> Audiobook.sourceAsString)
-            do printfn "Please enter a rating from 1-10 for %s" x
+            let previousRatingHint = match a.Rating with
+                                     | Some rating -> sprintf "(the current rating is '%i')" rating
+                                     | None -> String.Empty
+            do printfn "Please enter a rating from 1-10 for %s %s" x previousRatingHint
             let rating = input ()
-            { a with Rating = Some rating }
+            { a with Rating = rating }
             
         result {
             let! library = Library.fromFile libraryFile
@@ -178,7 +206,7 @@ module Program =
             return 0
         }
         
-    let completedStatus libraryFile id status = //(completedConfig: Config.CompletedConfig) =
+    let completedStatus libraryFile id status = 
         result {
             let! library = Library.fromFile libraryFile
             let! book = Library.findById id library
@@ -203,9 +231,8 @@ module Program =
                 return! add library idGenerator addConfig config
             | Config.List listConfig ->
                 return! list config.LibraryFile listConfig
-            | Config.Rescan rescanConfig ->
-                failwith "not implemented"
-                return 1
+            | Config.Remove removeConfig ->
+                return! remove config.LibraryFile removeConfig
             | Config.Update updateConfig ->
                 failwith "not implemented"
                 return 1

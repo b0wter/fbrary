@@ -51,6 +51,10 @@ module Library =
                         LastScanned = DateTime.Now
                 } |> Ok
                 
+    let removeBook (a: Audiobook.Audiobook) (l: Library) : Library =
+        let updatedBooks = l.Audiobooks |> List.filter (fun book -> book.Id <> a.Id)
+        { l with Audiobooks = updatedBooks }
+                
     let tryFind (predicate: Audiobook.Audiobook -> bool) (l: Library) : Audiobook.Audiobook option =
         l.Audiobooks |> List.tryFind predicate
         

@@ -151,7 +151,7 @@ module Audiobook =
             |> Ok
         
     let properties (a: Audiobook) =
-        [ a.Album; a.Artist; a.Title ] |> List.choose FSharp.Core.Operators.id
+        [ a.Album; a.Artist; a.Title; a.AlbumArtist ] |> List.choose FSharp.Core.Operators.id
     
     let maxPropertyLength (a: Audiobook) =
         a

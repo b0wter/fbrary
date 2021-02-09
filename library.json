@@ -1,34 +1,6 @@
 {
   "Audiobooks": [
     {
-      "Id": 1,
-      "Source": {
-        "MultiFile": [
-          "/tmp/server/audiobooks/Spiegel/004_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/008_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/005_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/003_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/001_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/011_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/006_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/013_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/002_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/007_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/016_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/012_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/014_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/010_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/009_Spiegel.mp3",
-          "/tmp/server/audiobooks/Spiegel/015_Spiegel.mp3"
-        ]
-      },
-      "Artist": "Cixin Liu",
-      "Album": "Spiegel",
-      "Duration": "02:31:19.2764999",
-      "HasPicture": true,
-      "Completed": false
-    },
-    {
       "Id": 2,
       "Source": {
         "SingleFile": "/home/b0wter/downloads/Hörbuch/01_hyperion.mp3"
@@ -39,7 +11,6 @@
       "Title": "Hyperion",
       "Duration": "20:45:00.9120000",
       "HasPicture": true,
-      "Rating": 8,
       "Completed": false
     },
     {

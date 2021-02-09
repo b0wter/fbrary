@@ -16,6 +16,7 @@
     <Compile Include="Library.fs" />
     <Compile Include="TagLib.fs" />
     <Compile Include="Program.fs" />
+    <Content Include="README.md" />
   </ItemGroup>
 
   <ItemGroup>

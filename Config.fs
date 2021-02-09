@@ -24,8 +24,8 @@ module Config =
             Completed = false
         }
     
-    type RescanConfig = {
-        Path: string
+    type RemoveConfig = {
+        Id: int
     }
     
     type UpdateConfig = {
@@ -47,7 +47,7 @@ module Config =
     type Command
         = Add of AddConfig
         | List of ListConfig
-        | Rescan of RescanConfig
+        | Remove of RemoveConfig
         | Update of UpdateConfig
         | Rate of RateConfig
         | Completed of CompletedConfig
@@ -80,8 +80,8 @@ module Config =
             { config with LibraryFile = l }
         | NonInteractive ->
             { config with NonInteractive = true }
-        | MainArgs.Rescan path ->
-            { config with Command = Rescan { Path = path } }
+        | MainArgs.Remove id ->
+            { config with Command = Remove { Id = id } }
         | MainArgs.Update id ->
             { config with Command = Update { Id = id } }
         | MainArgs.Add path ->
@@ -96,7 +96,7 @@ module Config =
             let listConfig = match config.Command with
                              | List c -> c
                              | Add _
-                             | Rescan _
+                             | Remove _
                              | Update _
                              | Uninitialized
                              | Rate _
