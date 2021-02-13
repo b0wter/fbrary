@@ -7,6 +7,7 @@ module Arguments =
     let artistFormatString = "%artist%"
     let albumFormatString = "%album%"
     let titleFormatString = "%title%"
+    let albumArtistFormatString = "%albumartist%"
     let durationFormatString = "%duration%"
     let idFormatString = "%id%"
     let ratingFormatString = "%rating%"

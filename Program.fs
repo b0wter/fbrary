@@ -81,7 +81,7 @@ module Program =
             Error "The given path is a directory not a file."
         else
             Ok None
-            
+
     let formattedAudiobook (format: string) (a: Audiobook.Audiobook) : string =
         let ratingFormatter (i: int option) : string =
             match i with
@@ -94,6 +94,7 @@ module Program =
             .Replace(Arguments.durationFormatString, a.Duration.ToString("h\:mm"))
             .Replace(Arguments.ratingFormatString, a.Rating |> ratingFormatter)
             .Replace(Arguments.commentFormatString, a.Comment |?| "<no comment>")
+            .Replace(Arguments.albumArtistFormatString, a.AlbumArtist |?| "<no album artist>")
             .Replace(Arguments.idFormatString, a.Id.ToString())
         
     let idGenerator (library: Library.Library) : (unit -> int) =
