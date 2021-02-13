@@ -1,4 +1,4 @@
-namespace b0wter.AudiobookLibrary
+namespace b0wter.Fbrary
 
 open System
     

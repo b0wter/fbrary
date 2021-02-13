@@ -1,6 +1,6 @@
-namespace b0wter.AudiobookLibrary
+namespace b0wter.Fbrary
 
-open b0wter.AudiobookLibrary.Arguments
+open b0wter.Fbrary.Arguments
 
 module Config =
     
