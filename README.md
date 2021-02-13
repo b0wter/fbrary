@@ -92,3 +92,17 @@ Missing
 ./Fbrary --libraryFile $LIBRARY_FILENAME missing $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
+
+Hints
+=====
+If you want to quickly add many folders without checking their meta information use this command (bash required):
+```bash
+find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -mindepth 1 -type d -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
+```
+This will add each folder as a separate item in the library.the
+
+If you store many mp3/ogg files in a folder and want to add each file as its own audio book use this command (bash required):
+```bash
+find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -name "*.mp3" -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
+```
+
