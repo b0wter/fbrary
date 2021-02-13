@@ -12,27 +12,27 @@ Currently the following commands are supported.
 Add
 ---
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME add $PATH
+./Fbrary --libraryFile $LIBRARY_FILENAME add $PATH
 ```
 Add a file or directory to the library.
 If you specify a directory it will be recursively scanned for mp3 files and added as a single audio book.
 After reading all the files you will be asked to confirm the meta data. 
 If you want to skip this step you need to pass the `--noninteractive` (`-n`) argument:
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME add -n $PATH
+./Fbrary --libraryFile $LIBRARY_FILENAME add -n $PATH
 ```
 
 Remove
 ------
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME remove $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME remove $ID
 ```
 Removes an audio book from the library. Use the `list` command to find book ids.
 
 List
 ----
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME list $PATTERN
+./Fbrary --libraryFile $LIBRARY_FILENAME list $PATTERN
 ```
 Lists all entries in the library that contain the `$PATTERN` in either their _Artist_, _Album_, _AlbumArtist_ or _Title_ field.
 The `$PATTERN` is an optional parameter. If it is skipped all books are listed.
@@ -44,10 +44,10 @@ There are the following additional parameters:
 
 You can freely combine the different arguments:
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME list --unrated --completed
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME list "Story"
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME list --notcompleted
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME list "Story" --completed
+./Fbrary --libraryFile $LIBRARY_FILENAME list --unrated --completed
+./Fbrary --libraryFile $LIBRARY_FILENAME list "Story"
+./Fbrary --libraryFile $LIBRARY_FILENAME list --notcompleted
+./Fbrary --libraryFile $LIBRARY_FILENAME list "Story" --completed
 ```
 
 Update
@@ -55,7 +55,7 @@ Update
 **This command is currently in development.**
 
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME update $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME update $ID
 ```
 Use the update command to edit the meta data for an existing library entry.
 Use the `list` command to find `$ID`s.
@@ -63,7 +63,7 @@ Use the `list` command to find `$ID`s.
 Rate
 ----
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME rate $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME rate $ID
 ```
 Set a rating for the given audio book.
 Use the `list` command to find `$ID`s.
@@ -71,7 +71,7 @@ Use the `list` command to find `$ID`s.
 Completed
 ---------
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME completed $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME completed $ID
 ```
 Mark an audiobook as completed.
 Use the `list` command to find `$ID`s.
@@ -79,7 +79,16 @@ Use the `list` command to find `$ID`s.
 NotCompleted
 ------------
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME notcompleted $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME notcompleted $ID
 ```
 Mark an audiobook as not completed.
 Use the `list` command to find `$ID`s.
+
+Missing
+-------
+**This command is currently in development.**
+
+```bash
+./Fbrary --libraryFile $LIBRARY_FILENAME missing $PATH
+```
+Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
