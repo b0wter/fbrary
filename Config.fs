@@ -6,7 +6,13 @@ module Config =
     
     type AddConfig = {
         Path: string
+        NonInteractive: bool
     }
+    let private emptyAddConfig =
+        {
+            Path = System.String.Empty
+            NonInteractive = false
+        }
     
     type ListConfig = {
         Filter: string
@@ -58,9 +64,8 @@ module Config =
         Command: Command
         Verbose: bool
         LibraryFile: string
-        NonInteractive: bool
     }
-    let empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty; NonInteractive = false }
+    let empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
@@ -69,6 +74,11 @@ module Config =
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
         | Unrated -> { config with Unrated = true }
+        
+    let applyAddArg (config: AddConfig) (a: AddArgs) : AddConfig =
+        match a with
+        | Path p -> { config with Path = p }
+        | NonInteractive -> { config with NonInteractive = true }
     
     // Define functions that take arguments and apply them to a config.
     // Use this to fold the configuration from the arguments.
@@ -78,14 +88,22 @@ module Config =
             { config with Verbose = true }
         | Library l ->
             { config with LibraryFile = l }
-        | NonInteractive ->
-            { config with NonInteractive = true }
         | MainArgs.Remove id ->
             { config with Command = Remove { Id = id } }
         | MainArgs.Update id ->
             { config with Command = Update { Id = id } }
-        | MainArgs.Add path ->
-            { config with Command = Add { Path = path } }
+        | MainArgs.Add add ->
+            let addConfig = match config.Command with
+                            | Add a -> a
+                            | List _
+                            | Remove _
+                            | Update _
+                            | Uninitialized
+                            | Rate _
+                            | NotCompleted _
+                            | Completed _ -> emptyAddConfig
+            let updatedAddConfig = add.GetAllResults() |> List.fold applyAddArg addConfig
+            { config with Command = Add updatedAddConfig }
         | MainArgs.Rate id ->
             { config with Command = Rate { Id = id } }
         | MainArgs.Completed id ->

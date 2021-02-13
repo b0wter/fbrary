@@ -20,6 +20,15 @@ module Arguments =
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
     
+    type AddArgs =
+        | [<MainCommand; Last>] Path of string
+        | [<AltCommandLine("-n")>] NonInteractive
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Path _ -> "The path of the file/directory to add."
+                | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
+        
     type ListArgs =
         | [<MainCommand; First>] Filter of string
         | Format of string
@@ -38,8 +47,7 @@ module Arguments =
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
         | [<AltCommandLine("-l"); Mandatory>] Library of string
-        | [<AltCommandLine("-n")>] NonInteractive
-        | [<Last; CliPrefix(CliPrefix.None)>] Add of string
+        | [<Last; CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
         | [<Last; CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
         | [<Last; CliPrefix(CliPrefix.None)>] Remove of int
         | [<Last; CliPrefix(CliPrefix.None)>] Update of int
@@ -51,7 +59,6 @@ module Arguments =
                 match s with
                 | Verbose -> "Verbose output."
                 | Library _ -> "Library file to read/write to."
-                | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
                 | Add _ -> addArgumentHelp 
                 | List _ -> "List all audiobooks in the current library."
                 | Remove _ -> "Removes an audio book from the library."

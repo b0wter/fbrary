@@ -37,7 +37,7 @@ module Program =
         
         step [] String.Empty parts
         
-    let addDirectory (config: Config.Config) (path: string) (idGenerator: unit -> int) = 
+    let addDirectory (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) = 
         result {
             let! directory = getIfDirectory path
             let! files = directory |> listFiles
@@ -45,21 +45,21 @@ module Program =
             let mp3s = files |> filterMp3Files
             do printfn "Of these %i have a mp3 extension." mp3s.Length
             let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
-            return! Audiobook.createFromMultiple config idGenerator metadata
+            return! Audiobook.createFromMultiple addConfig idGenerator metadata
         }
         
-    let addFile (config: Config.Config) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
+    let addFile (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         result {
             let! filename = getIfMp3File path
             let! metadata = filename |> TagLib.readMetaData
-            return Audiobook.createFromSingle config idGenerator metadata
+            return Audiobook.createFromSingle addConfig idGenerator metadata
         }
         
-    let addPath (config: Config.Config) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
+    let addPath (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         if File.Exists(path) then
-            addFile config path idGenerator
+            addFile addConfig path idGenerator
         elif Directory.Exists(path) then
-            addDirectory config path idGenerator
+            addDirectory addConfig path idGenerator
         else
             Error "The given path does not exist."
             
@@ -97,14 +97,15 @@ module Program =
             .Replace(Arguments.idFormatString, a.Id.ToString())
         
     let idGenerator (library: Library.Library) : (unit -> int) =
-        let mutable counter = library.Audiobooks |> List.map (fun a -> a.Id) |> List.max
+        let mutable counter = if library.Audiobooks.IsEmpty then 0
+                              else  library.Audiobooks |> List.map (fun a -> a.Id) |> List.max
         fun () ->
             do counter <- (counter + 1)
             counter
             
     let add (library: Library.Library) (idGenerator: (unit -> int)) (addConfig: Config.AddConfig) (config: Config.Config) : Result<int, string> =
         result {
-            let! audiobook = addPath config addConfig.Path idGenerator
+            let! audiobook = addPath addConfig addConfig.Path idGenerator
             let! updatedLibrary = library |> Library.addBook audiobook
             do! updatedLibrary |> Library.serialize |> writeTextToFile config.LibraryFile
             return 0
@@ -147,6 +148,17 @@ module Program =
             | None ->
                 return! (Error "The given library file does not exist. There is nothing to list.")
         }
+        
+    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) : Result<int, string> =
+        (*
+        let updateProperty 
+        result {
+            let! library = libraryFile |> Library.fromFile
+            let! book = library |> Library.findById updateConfig.Id
+            
+        }
+        *)
+        Error "The update operation is currently in development."
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
             
@@ -215,7 +227,7 @@ module Program =
             do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
             return 0
         }
-    
+        
     [<EntryPoint>]
     let main argv =
         let r = result {
@@ -234,8 +246,7 @@ module Program =
             | Config.Remove removeConfig ->
                 return! remove config.LibraryFile removeConfig
             | Config.Update updateConfig ->
-                failwith "not implemented"
-                return 1
+                return! update config.LibraryFile updateConfig
             | Config.Rate rateConfig ->
                 return! rate config.LibraryFile rateConfig.Id
             | Config.Completed completedConfig ->

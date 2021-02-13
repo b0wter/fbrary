@@ -17,7 +17,9 @@ module IO =
         else Ok (filesFromDirectory directory)
         
     let filterMp3Files (files: string list) : string list =
-        files |> List.filter (fun f -> f.EndsWith ".mp3")
+        files |> List.filter (fun f ->
+            let extension = Path.GetExtension(f).ToLower()
+            extension.EndsWith ".mp3" || extension.EndsWith ".ogg")
         
     let removeFirstFolder (filename: string) =
         let pathRoot = Path.GetPathRoot(filename)
@@ -87,3 +89,27 @@ module IO =
                     Error ex.Message
         else
             Error (sprintf "The file '%s' does not exist." filename)
+
+    let readLine (question: unit -> string) (transform: string -> Result<'a, string>) : 'a =
+        do Console.WriteLine(question())
+        let rec step () =
+            let input = Console.ReadLine ()
+            match input |> transform with
+            | Ok i -> i
+            | Error e ->
+                do printfn "%s" e
+                step ()
+        step ()
+
+    let readYesNo (question: unit -> string) : bool =
+        do Console.WriteLine(question())
+        let rec step () =
+            let input = Console.ReadKey true
+            if input.Key = ConsoleKey.Y then true
+            elif input.Key = ConsoleKey.N then false
+            else
+                do printfn "Invalid input. Please enter 'y' or 'n'."
+                step ()
+        step ()
+        
+            

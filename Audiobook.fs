@@ -73,38 +73,57 @@ module Audiobook =
         }
     
     let createInteractive source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
+        // TODO: This code works but not in a good way. Needs refactoring.
         let filename = match source with SingleFile f -> f | MultiFile m -> m |> List.tryHead |> Option.getOrElse "<no filename>"
         let readFromInput (fieldName: string) (value: string option) : string option =
             let nonOptionValue = match value with Some s -> s | None -> String.Empty
             match nonOptionValue with
             | s when String.IsNullOrWhiteSpace(s) ->
-                do printf "The field '%s' is empty. Do you want to set it? [y/N]" fieldName
+                do printfn "The field '%s' is empty. Do you want to set it? [y/N]" fieldName
                 let key = Console.ReadKey true
-                do printfn "%s" <| key.Key.ToString()
                 if key.Key = ConsoleKey.Y || key.KeyChar = 'y' || key.KeyChar = 'Y' then
                     Console.Write("Please enter the new value: ")
                     Console.ReadLine() |> Some
                 else
                     value
             | s ->
-                do printf "The field '%s' has the value: '%s'. Is that correct? [Y/n]" fieldName s
+                do printfn "The field '%s' has the value: '%s'. Is that correct? [Y/n]" fieldName s
                 let key = Console.ReadKey true
-                do printfn "%s" <| key.Key.ToString()
                 if key.Key = ConsoleKey.N || key.KeyChar = 'n' || key.KeyChar = 'N' then
                     Console.Write("Please enter the new value: ")
                     Console.ReadLine() |> Some
                 else
                     value
+                    
+        let ratingFromInput () : int option =
+            let mutable breaker = true
+            let mutable value = None
+            do printfn "Do you want to add a rating? [y/N]"
+            if Console.ReadKey(true).Key = ConsoleKey.Y then
+                do printfn "Please enter a value from 1 to 10."
+                while breaker do
+                    match Parsers.parseInt(Console.ReadLine()) with
+                    | Some i ->
+                        do breaker <- false
+                        do value <- Some i
+                    | None ->
+                        printfn "Please enter a value from 1 to 10."
+                        ()
+                value
+            else
+                None
+        
         do printfn "Updating metadata for '%s'." filename
         let artist = readFromInput "Artist" artist
         let album = readFromInput "Album" album
         let albumArtist = readFromInput "Album Artist" albumArtist
         let title = readFromInput "Title" title
         let comment = readFromInput "Comment" comment
+        let rating = ratingFromInput ()
                 
-        createWith source artist album albumArtist title duration hasPicture comment idGenerator None
+        createWith source artist album albumArtist title duration hasPicture comment idGenerator rating
         
-    let createWithPossibleInteraction (config: Config.Config) source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
+    let createWithPossibleInteraction (config: Config.AddConfig) source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
         if config.NonInteractive then
             createWith source artist album albumArtist title duration hasPicture comment idGenerator None
         else
@@ -131,7 +150,7 @@ module Audiobook =
         let selectedTitle =
             let distinct = mm |> List.map (fun m -> m.Title) |> List.choose FSharp.Core.Operators.id |> List.distinct
             if distinct.Length > 1 then None
-            else Some distinct.Head
+            else distinct |> List.tryHead
             
         match mm with
         | [] -> Error "Cannot create an audiobook from an empty source."

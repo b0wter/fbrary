@@ -2,7 +2,6 @@ Audio Book Library
 ==================
 This is a simple CLI tool that allows you to manage your audio book library.
 
-
 Commands
 ========
 The application is run in a style similar to `git`. There are several commands to manipulate/list your library.
@@ -20,7 +19,7 @@ If you specify a directory it will be recursively scanned for mp3 files and adde
 After reading all the files you will be asked to confirm the meta data. 
 If you want to skip this step you need to pass the `--noninteractive` (`-n`) argument:
 ```bash
-./audiobookLibrary --libraryFile $LIBRARY_FILENAME -n add $PATH
+./audiobookLibrary --libraryFile $LIBRARY_FILENAME add -n $PATH
 ```
 
 Remove

@@ -8,6 +8,7 @@ module Library =
     type Library = {
         Audiobooks: Audiobook.Audiobook list
         LastScanned: DateTime
+        BasePath: string option
     }
     
     let serialize (l: Library) : string =
@@ -24,7 +25,7 @@ module Library =
             else
                 Error e
 
-    let empty = { Audiobooks = []; LastScanned = DateTime.MinValue }
+    let empty = { Audiobooks = []; LastScanned = DateTime.MinValue; BasePath = None }
     
     let containsId id (l: Library) : bool =
         l.Audiobooks |> List.map Audiobook.id |> List.contains id
