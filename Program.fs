@@ -125,18 +125,28 @@ module Program =
         
     let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
         let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
+        let completedPredicate = fun (a: Audiobook.Audiobook) -> a.Completed = true
         let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.Completed = false
         let filterPredicate pattern = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString pattern
-        let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted with
-                         | "", false, false -> [ fun _ -> true ]
-                         | "", true, false -> [ unratedPredicate ]
-                         | "", false, true -> [ notCompletedPredicate ]
-                         | "", true, true -> [ unratedPredicate; notCompletedPredicate ]
-                         | s, false, false -> [ filterPredicate s ]
-                         | s, true, false -> [ filterPredicate s; unratedPredicate ]
-                         | s, false, true -> [ filterPredicate s; notCompletedPredicate ]
-                         | s, true, true -> [ filterPredicate s; unratedPredicate; notCompletedPredicate ]
-        let combinedPredicate a = List.forall (fun p -> a |> p) predicates
+        let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
+                          else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
+        let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted, listConfig.Completed with
+                         | "", false, false, false -> [ fun _ -> true ]
+                         | "", true, false, false -> [ unratedPredicate ]
+                         | "", false, true, false -> [ notCompletedPredicate ]
+                         | "", true, true, false -> [ unratedPredicate; notCompletedPredicate ]
+                         | s, false, false, false -> [ filterPredicate s ]
+                         | s, true, false, false -> [ filterPredicate s; unratedPredicate ]
+                         | s, false, true, false -> [ filterPredicate s; notCompletedPredicate ]
+                         | s, true, true, false -> [ filterPredicate s; unratedPredicate; notCompletedPredicate ]
+                         | "", true, false, true -> [ unratedPredicate; completedPredicate ]
+                         | "", false, true, true -> [ notCompletedPredicate; completedPredicate ]
+                         | "", true, true, true -> [ unratedPredicate; notCompletedPredicate; completedPredicate ]
+                         | s, false, false, true -> [ filterPredicate s; completedPredicate ]
+                         | s, true, false, true -> [ filterPredicate s; unratedPredicate; completedPredicate ]
+                         | s, false, true, true -> [ filterPredicate s; notCompletedPredicate; completedPredicate ]
+                         | s, true, true, true -> [ filterPredicate s; unratedPredicate; notCompletedPredicate; completedPredicate ]
+        let combinedPredicate a = List.forall (fun p -> a |> p) (idPredicate :: predicates)
         
         result {
             match! readLibraryIfExisting libraryFile with

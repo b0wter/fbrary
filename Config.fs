@@ -17,6 +17,7 @@ module Config =
     type ListConfig = {
         Filter: string
         Format: string
+        Ids: int list
         Unrated: bool
         NotCompleted: bool
         Completed: bool
@@ -25,6 +26,7 @@ module Config =
         {
             Filter = System.String.Empty
             Format = defaultFormatString
+            Ids = []
             Unrated = false
             NotCompleted = false
             Completed = false
@@ -76,6 +78,7 @@ module Config =
         match l with
         | Format format -> { config with Format = format }
         | Filter filter -> { config with Filter = filter }
+        | Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
         | Unrated -> { config with Unrated = true }

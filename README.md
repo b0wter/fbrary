@@ -41,6 +41,7 @@ There are the following additional parameters:
  * `--completed` - lists books that have been marked completed
  * `--notcompleted` - lists books that have not been marked completed
  * `--unrated` - lists books that do not have a rating
+ * `--ids $ID1 $ID2 $..` - list only books with the given ids
 
 You can freely combine the different arguments:
 ```bash
