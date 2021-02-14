@@ -71,17 +71,17 @@ Use the `list` command to find `$ID`s.
 Completed
 ---------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME completed $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME completed $ID1 $ID2 $..
 ```
-Mark an audiobook as completed.
+Mark one or more audio books as completed.
 Use the `list` command to find `$ID`s.
 
 NotCompleted
 ------------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME notcompleted $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME notcompleted $ID1 $ID2 $..
 ```
-Mark an audiobook as not completed.
+Mark one or more audio books as not completed.
 Use the `list` command to find `$ID`s.
 
 Unmatched

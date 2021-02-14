@@ -150,15 +150,9 @@ module Program =
         }
         
     let update (libraryFile: string) (updateConfig: Config.UpdateConfig) : Result<int, string> =
-        (*
-        let updateProperty 
         result {
-            let! library = libraryFile |> Library.fromFile
-            let! book = library |> Library.findById updateConfig.Id
-            
+            return! Error "Not implemented."
         }
-        *)
-        Error "The update operation is currently in development."
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
             
@@ -218,12 +212,12 @@ module Program =
             return 0
         }
         
-    let completedStatus libraryFile id status = 
+    let completedStatus libraryFile ids status = 
         result {
             let! library = Library.fromFile libraryFile
-            let! book = Library.findById id library
-            let updatedBook = { book with Completed = status }
-            let! updatedLibrary = library |> Library.addBook updatedBook
+            let! books = Library.findByIds ids library
+            let updatedBooks = books |> List.map (Audiobook.withCompletionStatus status)
+            let! updatedLibrary = Library.updateBooks updatedBooks library
             do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             return 0
         }
@@ -264,9 +258,9 @@ module Program =
             | Config.Rate rateConfig ->
                 return! rate config.LibraryFile rateConfig.Id
             | Config.Completed completedConfig ->
-                return! completedStatus config.LibraryFile completedConfig.Id true
+                return! completedStatus config.LibraryFile completedConfig.Ids true
             | Config.NotCompleted notCompletedConfig ->
-                return! completedStatus config.LibraryFile notCompletedConfig.Id false
+                return! completedStatus config.LibraryFile notCompletedConfig.Ids false
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->

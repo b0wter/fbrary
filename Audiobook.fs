@@ -54,6 +54,15 @@ module Audiobook =
     let withId (id: int) (a: Audiobook) : Audiobook =
         { a with Id = id }
         
+    let asCompleted (a: Audiobook) : Audiobook =
+        { a with Completed = true }
+        
+    let asNotCompleted (a: Audiobook) : Audiobook =
+        { a with Completed = false }
+        
+    let withCompletionStatus (b: bool) (a: Audiobook) : Audiobook =
+        { a with Completed = b }
+        
     //
     // Other functions.
     //

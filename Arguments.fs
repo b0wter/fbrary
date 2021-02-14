@@ -53,8 +53,8 @@ module Arguments =
         | [<Last; CliPrefix(CliPrefix.None)>] Remove of int
         | [<Last; CliPrefix(CliPrefix.None)>] Update of int
         | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
-        | [<Last; CliPrefix(CliPrefix.None)>] Completed of int
-        | [<Last; CliPrefix(CliPrefix.None)>] NotCompleted of int
+        | [<Last; CliPrefix(CliPrefix.None)>] Completed of int list
+        | [<Last; CliPrefix(CliPrefix.None)>] NotCompleted of int list
         | [<Last; CliPrefix(CliPrefix.None)>] Unmatched of string
         interface IArgParserTemplate with
             member s.Usage =

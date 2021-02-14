@@ -2,6 +2,8 @@ namespace b0wter.Fbrary
 
 open System
 open FsToolkit.ErrorHandling
+open b0wter.FSharp.Collections
+open b0wter.Fbrary.Utilities
 
 module Library =
     
@@ -54,6 +56,20 @@ module Library =
                         Audiobooks = a :: l.Audiobooks
                         LastScanned = DateTime.Now
                 } |> Ok
+
+    let updateBooks (aa: Audiobook.Audiobook list) (l: Library) : Result<Library, string> =
+        let exempted = aa |> List.map Audiobook.id
+        let predicate = fun (a: Audiobook.Audiobook) -> exempted |> List.contains a.Id
+        let splitBooks = List.splitBy predicate l.Audiobooks
+        let mergedBooks = aa @ splitBooks.NonMatching
+        Ok { l with Audiobooks = mergedBooks }
+        
+    let updateBook (a: Audiobook.Audiobook) (l: Library) : Result<Library, string> =
+        match l.Audiobooks |> List.tryFind (fun b -> b.Id = a.Id) with
+        | Some book ->
+            Ok { l with Audiobooks = (List.replace book a l.Audiobooks) }
+        | None -> Error (sprintf "An audio book with the id '%i' does not exist." a.Id)
+        
                 
     let removeBook (a: Audiobook.Audiobook) (l: Library) : Library =
         let updatedBooks = l.Audiobooks |> List.filter (fun book -> book.Id <> a.Id)
@@ -67,6 +83,17 @@ module Library =
         
     let findById (id: int) =
         (tryFindById id) >> (function Some a -> Ok a | None -> Error "Audiobook with the given id does not exist.")
+        
+    let findByIds (ids: int list) (l: Library) =
+        let rec step (accumulator: Audiobook.Audiobook list) (remainingIds: int list) (remainingBooks: Audiobook.Audiobook list) =
+            match remainingBooks, remainingIds with
+            | _, [] -> Ok accumulator
+            | [], _ -> Error (sprintf "Could not find the following ids: %s" (remainingIds |> List.map string |> (fun s -> String.Join(", ", s))))
+            | head :: tail, _ -> if remainingIds |> List.contains head.Id then
+                                     step (head :: accumulator) (remainingIds |> List.remove head.Id) tail
+                                 else
+                                     step accumulator remainingIds tail
+        step [] ids l.Audiobooks
         
     /// Reads a text file and deserializes a `Library` instance.
     /// Returns errors if the given file does not exist, is not readable or the json is invalid.

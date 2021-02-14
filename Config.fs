@@ -43,11 +43,11 @@ module Config =
     }
     
     type CompletedConfig = {
-        Id: int
+        Ids: int list
     }
     
     type NotCompletedConfig = {
-        Id: int
+        Ids: int list
     }
     
     type UnmatchedConfig = {
@@ -112,10 +112,10 @@ module Config =
             { config with Command = Add updatedAddConfig }
         | MainArgs.Rate id ->
             { config with Command = Rate { Id = id } }
-        | MainArgs.Completed id ->
-            { config with Command = Completed { Id = id } }
-        | MainArgs.NotCompleted id ->
-            { config with Command = NotCompleted { Id = id } }
+        | MainArgs.Completed ids ->
+            { config with Command = Completed { Ids = ids } }
+        | MainArgs.NotCompleted ids ->
+            { config with Command = NotCompleted { Ids = ids } }
         | MainArgs.Unmatched path ->
             { config with Command = Unmatched { Path = path } }
         | MainArgs.List l ->
