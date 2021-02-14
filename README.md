@@ -41,7 +41,14 @@ There are the following additional parameters:
  * `--completed` - lists books that have been marked completed
  * `--notcompleted` - lists books that have not been marked completed
  * `--unrated` - lists books that do not have a rating
- * `--ids $ID1 $ID2 $..` - list only books with the given ids
+ * `--ids $ID1 $ID2 $..` - list only books with the given idst
+ * `--format $FORMAT_STRING` - configure how to display the results
+
+## Format
+Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
+```
+%artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating%, %comment%
+```
 
 You can freely combine the different arguments:
 ```bash
