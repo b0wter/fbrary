@@ -44,7 +44,7 @@ There are the following additional parameters:
  * `--ids $ID1 $ID2 $..` - list only books with the given idst
  * `--format $FORMAT_STRING` - configure how to display the results
 
-## Format
+### Format
 Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
 ```
 %artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating%, %comment%
