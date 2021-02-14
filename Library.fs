@@ -11,6 +11,9 @@ module Library =
         BasePath: string option
     }
     
+    let withSortedBooks (l: Library) =
+        { l with Audiobooks = l.Audiobooks |> List.sortByDescending (fun a -> a.Id) }
+    
     let serialize (l: Library) : string =
         Microsoft.FSharpLu.Json.Compact.serialize l
         

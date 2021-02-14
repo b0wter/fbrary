@@ -1,6 +1,5 @@
 namespace b0wter.Fbrary
 
-open IO
 open Argu
 open System
 open System.IO
@@ -31,7 +30,7 @@ module Program =
                 if currentRow.Length + head.Length + separatorLength <= maxRowLength then
                     step rowsAccumulator (currentRow + head + separator) tail
                 elif head.Length > maxRowLength then
-                    step (currentRow :: rowsAccumulator) (head |> (reduceFilenameLength maxRowLength)) tail
+                    step (currentRow :: rowsAccumulator) (head |> (IO.reduceFilenameLength maxRowLength)) tail
                 else
                     step (currentRow :: rowsAccumulator) (head + separator) tail
         
@@ -39,10 +38,10 @@ module Program =
         
     let addDirectory (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) = 
         result {
-            let! directory = getIfDirectory path
-            let! files = directory |> listFiles
+            let! directory = IO.getIfDirectory path
+            let! files = directory |> IO.listFiles
             do printfn "Found %i files" files.Length
-            let mp3s = files |> filterMp3Files
+            let mp3s = files |> IO.filterMp3Files
             do printfn "Of these %i have a mp3 extension." mp3s.Length
             let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
             return! Audiobook.createFromMultiple addConfig idGenerator metadata
@@ -50,7 +49,7 @@ module Program =
         
     let addFile (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         result {
-            let! filename = getIfMp3File path
+            let! filename = IO.getIfMp3File path
             let! metadata = filename |> TagLib.readMetaData
             return Audiobook.createFromSingle addConfig idGenerator metadata
         }
@@ -65,7 +64,7 @@ module Program =
             
     let private readLibraryOr (ifNotExisting: unit -> Library.Library) (filename: string) : Result<Library.Library, string> =
         if File.Exists(filename) then
-            (readTextFromFile filename) |> Result.bind Library.deserialize
+            (IO.readTextFromFile filename) |> Result.bind Library.deserialize
         elif Directory.Exists(filename) then
             Error "The given path is a directory not a file."
         else
@@ -76,7 +75,7 @@ module Program =
         
     let readLibraryIfExisting (filename: string) : Result<Library.Library option, string> =
         if File.Exists(filename) then
-            (readTextFromFile filename) |> Result.bind (Library.deserialize >> Result.map Some)
+            (IO.readTextFromFile filename) |> Result.bind (Library.deserialize >> Result.map Some)
         elif Directory.Exists(filename) then
             Error "The given path is a directory not a file."
         else
@@ -108,7 +107,7 @@ module Program =
         result {
             let! audiobook = addPath addConfig addConfig.Path idGenerator
             let! updatedLibrary = library |> Library.addBook audiobook
-            do! updatedLibrary |> Library.serialize |> writeTextToFile config.LibraryFile
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile config.LibraryFile
             return 0
         }
             
@@ -120,7 +119,7 @@ module Program =
             if updatedLibrary.Audiobooks.Length = library.Audiobooks.Length then
                 do printfn "No audio book has the id '%i'. The library has not been modified." removeConfig.Id
             else
-                do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
+                do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             return 0
         }
         
@@ -210,7 +209,7 @@ module Program =
                 let mergedBooks = (updatedBooks @ books.NonMatching) |> List.sortBy (fun a -> a.Id)
                 
                 let updatedLibrary = { library with Audiobooks = mergedBooks }
-                do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
+                do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             else
                 let text = match bookId with
                            | Some i -> sprintf "There is no book with the id '%i'." i
@@ -225,8 +224,22 @@ module Program =
             let! book = Library.findById id library
             let updatedBook = { book with Completed = status }
             let! updatedLibrary = library |> Library.addBook updatedBook
-            do! updatedLibrary |> Library.serialize |> writeTextToFile libraryFile
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             return 0
+        }
+        
+    let unmatched libraryFile (config: Config.UnmatchedConfig) =
+        result {
+            let! library = Library.fromFile libraryFile
+            let allLibraryFiles = library.Audiobooks |> List.collect Audiobook.allFiles
+            let! allPathFiles = config.Path |> IO.listFiles |> Result.map IO.filterMp3Files
+            let missingFiles = allPathFiles |> List.except allLibraryFiles
+            if missingFiles.IsEmpty then
+                do printfn "All files are included in the library."
+                return 0
+            else
+                do missingFiles |> List.iter Console.WriteLine
+                return 0
         }
         
     [<EntryPoint>]
@@ -254,6 +267,8 @@ module Program =
                 return! completedStatus config.LibraryFile completedConfig.Id true
             | Config.NotCompleted notCompletedConfig ->
                 return! completedStatus config.LibraryFile notCompletedConfig.Id false
+            | Config.Unmatched unmatchedConfig ->
+                return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1

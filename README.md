@@ -84,12 +84,10 @@ NotCompleted
 Mark an audiobook as not completed.
 Use the `list` command to find `$ID`s.
 
-Missing
+Unmatched
 -------
-**This command is currently in development.**
-
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME missing $PATH
+./Fbrary --libraryFile $LIBRARY_FILENAME unmatched $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
 

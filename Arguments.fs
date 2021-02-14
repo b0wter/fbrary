@@ -55,6 +55,7 @@ module Arguments =
         | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
         | [<Last; CliPrefix(CliPrefix.None)>] Completed of int
         | [<Last; CliPrefix(CliPrefix.None)>] NotCompleted of int
+        | [<Last; CliPrefix(CliPrefix.None)>] Unmatched of string
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -67,5 +68,6 @@ module Arguments =
                 | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
                 | Completed _ -> "Mark the book with the given id as completely listened to."
                 | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
+                | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
                 
 

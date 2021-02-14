@@ -7,11 +7,13 @@ open FsToolkit.ErrorHandling
 
 module IO =
 
-    let rec filesFromDirectory (directory: string) : string list =
+    /// Gets a list of files in the given directory and all subdirectories.
+    let rec private filesFromDirectory (directory: string) : string list =
         let files = Directory.GetFiles directory |> List.ofArray 
         let folders = Directory.GetDirectories directory |> List.ofArray |> List.collect filesFromDirectory
         files @ folders
 
+    /// Gets a list of files in the given directory and all subdirectories.
     let listFiles (directory: string) =
         if not <| Directory.Exists(directory) then Error (sprintf "The directory '%s' does not exist." directory)
         else Ok (filesFromDirectory directory)

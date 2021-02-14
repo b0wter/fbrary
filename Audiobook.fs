@@ -197,3 +197,7 @@ module Audiobook =
         | SingleFile s1, SingleFile s2 -> s1 = s2
         | MultiFile m1, MultiFile m2 -> m1 = m2
         
+    let allFiles (a: Audiobook) : string list =
+        match a.Source with
+        | SingleFile s -> [ s ]
+        | MultiFile m -> m
