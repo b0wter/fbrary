@@ -21,6 +21,7 @@ module Audiobook =
         Album: string option
         AlbumArtist: string option
         Title: string option
+        Genre: string option
         Duration: TimeSpan
         HasPicture: bool
         Comment: string option
@@ -66,7 +67,7 @@ module Audiobook =
     //
     // Other functions.
     //
-    let createWith source artists album albumArtist title duration hasPicture comment (idGenerator: unit -> int) rating =
+    let createWith source artists album albumArtist title genre duration hasPicture comment (idGenerator: unit -> int) rating =
         {
             Id = idGenerator ()
             Source = source
@@ -74,6 +75,7 @@ module Audiobook =
             Album = album
             AlbumArtist = albumArtist
             Title = title
+            Genre = genre
             Duration = duration
             HasPicture = hasPicture
             Comment = comment
@@ -81,7 +83,7 @@ module Audiobook =
             Completed = false
         }
     
-    let createInteractive source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
+    let createInteractive source artist album albumArtist title genre duration hasPicture comment (idGenerator: unit -> int) =
         // TODO: This code works but not in a good way. Needs refactoring.
         let filename = match source with SingleFile f -> f | MultiFile m -> m |> List.tryHead |> Option.getOrElse "<no filename>"
         let readFromInput (fieldName: string) (value: string option) : string option =
@@ -127,16 +129,17 @@ module Audiobook =
         let album = readFromInput "Album" album
         let albumArtist = readFromInput "Album Artist" albumArtist
         let title = readFromInput "Title" title
+        let genre = readFromInput "Genre" genre
         let comment = readFromInput "Comment" comment
         let rating = ratingFromInput ()
                 
-        createWith source artist album albumArtist title duration hasPicture comment idGenerator rating
+        createWith source artist album albumArtist title genre duration hasPicture comment idGenerator rating
         
-    let createWithPossibleInteraction (config: Config.AddConfig) source artist album albumArtist title duration hasPicture comment (idGenerator: unit -> int) =
+    let createWithPossibleInteraction (config: Config.AddConfig) source artist album albumArtist title (genre: string option) duration hasPicture comment (idGenerator: unit -> int) =
         if config.NonInteractive then
-            createWith source artist album albumArtist title duration hasPicture comment idGenerator None
+            createWith        source artist album albumArtist title genre duration hasPicture comment idGenerator None
         else
-            createInteractive source artist album albumArtist title duration hasPicture comment idGenerator
+            createInteractive source artist album albumArtist title genre duration hasPicture comment idGenerator
         
     /// Creates an audiobook for a single file.
     let createFromSingle config idGenerator (m: Metadata.Metadata) =
@@ -147,6 +150,7 @@ module Audiobook =
             m.Album
             m.AlbumArtist
             m.Title
+            m.Genre
             m.Duration
             m.HasPicture
             m.Comment
@@ -156,10 +160,13 @@ module Audiobook =
     let createFromMultiple config (idGenerator: unit -> int) (mm: Metadata.Metadata list) : Result<Audiobook, string> =
         // If multiple input files are given there is no proper way to
         // select the matching title if there is more than one.
-        let selectedTitle =
-            let distinct = mm |> List.map (fun m -> m.Title) |> List.choose FSharp.Core.Operators.id |> List.distinct
+        let selectDistinct (selector: 'a -> string option) (items: 'a list) : string option =
+            let distinct = items |> List.map selector |> List.choose FSharp.Core.Operators.id |> List.distinct
             if distinct.Length > 1 then None
             else distinct |> List.tryHead
+            
+        let selectedTitle = mm |> selectDistinct (fun a -> a.Title)
+        let selectedGenre = mm |> selectDistinct (fun a -> a.Genre)
             
         match mm with
         | [] -> Error "Cannot create an audiobook from an empty source."
@@ -171,7 +178,8 @@ module Audiobook =
                 head.Artist
                 head.Album
                 head.AlbumArtist
-                selectedTitle 
+                selectedTitle
+                selectedGenre
                 duration
                 head.HasPicture
                 head.Comment

@@ -19,6 +19,8 @@ module TagLib =
                 
             let albumArtists (d: TagLib.File) : string option = joinField d.Tag.AlbumArtists
                 
+            let genres (d: TagLib.File) : string option = joinField d.Tag.Genres
+                
             let asStringOption (s: string) =
                 if String.IsNullOrWhiteSpace(s) then None else Some s
                 
@@ -29,6 +31,7 @@ module TagLib =
                 Album = d.Tag.Album |> asStringOption
                 AlbumArtist = d |> albumArtists
                 Title = d.Tag.Title |> asStringOption
+                Genre = d |> genres
                 Duration = d.Properties.Duration
                 HasPicture = d.Tag.Pictures.Length > 0
                 Comment = d.Tag.Comment |> asStringOption

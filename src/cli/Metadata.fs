@@ -10,6 +10,7 @@ module Metadata =
         AlbumArtist: string option
         Album: string option
         Title: string option
+        Genre: string option
         Duration: TimeSpan
         HasPicture: bool
         Comment: string option
