@@ -82,22 +82,7 @@ module Program =
             Ok None
 
     let formattedAudiobook (format: string) (a: Audiobook.Audiobook) : string =
-        let ratingFormatter (i: int option) : string =
-            match i with
-            | Some int -> sprintf "%i/10" int
-            | None -> "<unrated>"
         a |> Formatter.CommandLine.applyAll format
-        (*
-        format
-            .Replace(Arguments.artistFormatString, a.Artist |?| "<unknown artist>")
-            .Replace(Arguments.albumFormatString, a.Album |?| "<unknown album>")
-            .Replace(Arguments.titleFormatString, a.Title |?| "<unknown title>")
-            .Replace(Arguments.durationFormatString, a.Duration.ToString("h\:mm"))
-            .Replace(Arguments.ratingFormatString, a.Rating |> ratingFormatter)
-            .Replace(Arguments.commentFormatString, a.Comment |?| "<no comment>")
-            .Replace(Arguments.albumArtistFormatString, a.AlbumArtist |?| "<no album artist>")
-            .Replace(Arguments.idFormatString, a.Id.ToString())
-            *)
         
     let idGenerator (library: Library.Library) : (unit -> int) =
         let mutable counter = if library.Audiobooks.IsEmpty then 0
