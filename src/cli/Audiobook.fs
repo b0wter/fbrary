@@ -135,16 +135,16 @@ module Audiobook =
                 
         createWith source artist album albumArtist title genre duration hasPicture comment idGenerator rating
         
-    let createWithPossibleInteraction (config: Config.AddConfig) source artist album albumArtist title (genre: string option) duration hasPicture comment (idGenerator: unit -> int) =
-        if config.NonInteractive then
-            createWith        source artist album albumArtist title genre duration hasPicture comment idGenerator None
-        else
+    let createWithPossibleInteraction (interactive: bool) source artist album albumArtist title (genre: string option) duration hasPicture comment (idGenerator: unit -> int) =
+        if interactive then
             createInteractive source artist album albumArtist title genre duration hasPicture comment idGenerator
+        else
+            createWith        source artist album albumArtist title genre duration hasPicture comment idGenerator None
         
     /// Creates an audiobook for a single file.
-    let createFromSingle config idGenerator (m: Metadata.Metadata) =
+    let createFromSingle interactive idGenerator (m: Metadata.Metadata) =
         createWithPossibleInteraction
-            config
+            interactive
             (SingleFile m.Filename)
             m.Artist
             m.Album
@@ -157,7 +157,7 @@ module Audiobook =
             idGenerator
         
     /// Creates an audiobook for a list of files.
-    let createFromMultiple config (idGenerator: unit -> int) (mm: Metadata.Metadata list) : Result<Audiobook, string> =
+    let createFromMultiple interactive (idGenerator: unit -> int) (mm: Metadata.Metadata list) : Result<Audiobook, string> =
         // If multiple input files are given there is no proper way to
         // select the matching title if there is more than one.
         let selectDistinct (selector: 'a -> string option) (items: 'a list) : string option =
@@ -173,7 +173,7 @@ module Audiobook =
         | head :: _ ->
             let duration = mm |> List.fold (fun (aggregator: TimeSpan) (next: Metadata.Metadata) -> aggregator.Add(next.Duration)) TimeSpan.Zero
             createWithPossibleInteraction
-                config
+                interactive
                 (mm |> List.map (fun m -> m.Filename) |> MultiFile)
                 head.Artist
                 head.Album

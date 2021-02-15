@@ -55,7 +55,20 @@ You can freely combine the different arguments:
 ### Format
 Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
 ```
-%artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating%, %comment%
+%artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating%, %comment%, %genre%
+```
+If an audio book does not have a proper value for the given placeholder (e.g. `%title%`) it is replaced by `<no title set>`. You can wrap a single or multiple placeholders in `??` to supress the `<no $PLACEHOLDER set>` text. E.g.:
+```
+??%genre%?? -> "" if the genre is not set
+```
+You can add any text you want inside the double question marks:
+```
+??(Genre: %genre%)?? -> (Genre: SciFi) if the genre is set
+                     -> "" if the genre is not set
+```
+If you have multiple placeholders inside the same `??` the string will be empty if one or more placeholders are replaced with empty values:
+```
+??%genre% %artist% %album%?? -> "" if either genre, artist or album is empty
 ```
 
 Update

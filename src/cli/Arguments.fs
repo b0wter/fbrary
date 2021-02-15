@@ -3,24 +3,13 @@ namespace b0wter.Fbrary
 open Argu
  
 module Arguments =
-    
-    let artistFormatString = "%artist%"
-    let albumFormatString = "%album%"
-    let titleFormatString = "%title%"
-    let albumArtistFormatString = "%albumartist%"
-    let durationFormatString = "%duration%"
-    let idFormatString = "%id%"
-    let ratingFormatString = "%rating%"
-    let commentFormatString = "%comment%"
-    
-    let formattedFormatStringList = sprintf "%s, %s, %s, %s, %s, %s, %s" artistFormatString albumFormatString titleFormatString durationFormatString idFormatString ratingFormatString commentFormatString
-    let defaultFormatString = sprintf "(%s) %s - %s - %s - %s" idFormatString titleFormatString artistFormatString albumFormatString durationFormatString
-    
+       
     let addArgumentHelp = "Add the file or directly to the library. " +
                           "Note that all files inside a folder are interpreted as a single audiobook. " +
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
-    
+    let formattedFormatStringList = System.String.Join(", ", Formatter.CommandLine.allFormantPlaceholders)
+       
     type AddArgs =
         | [<MainCommand; Last>] Path of string
         | [<AltCommandLine("-n")>] NonInteractive

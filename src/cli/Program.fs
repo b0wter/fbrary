@@ -44,19 +44,19 @@ module Program =
             let mp3s = files |> IO.filterMp3Files
             do printfn "Of these %i have a mp3 extension." mp3s.Length
             let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
-            return! Audiobook.createFromMultiple addConfig idGenerator metadata
+            return! Audiobook.createFromMultiple (not <| addConfig.NonInteractive) idGenerator metadata
         }
         
-    let addFile (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
+    let addFile interactive (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         result {
             let! filename = IO.getIfMp3File path
             let! metadata = filename |> TagLib.readMetaData
-            return Audiobook.createFromSingle addConfig idGenerator metadata
+            return Audiobook.createFromSingle interactive idGenerator metadata
         }
         
     let addPath (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
         if File.Exists(path) then
-            addFile addConfig path idGenerator
+            addFile (not <| addConfig.NonInteractive) path idGenerator
         elif Directory.Exists(path) then
             addDirectory addConfig path idGenerator
         else
@@ -86,6 +86,8 @@ module Program =
             match i with
             | Some int -> sprintf "%i/10" int
             | None -> "<unrated>"
+        a |> Formatter.CommandLine.applyAll format
+        (*
         format
             .Replace(Arguments.artistFormatString, a.Artist |?| "<unknown artist>")
             .Replace(Arguments.albumFormatString, a.Album |?| "<unknown album>")
@@ -95,6 +97,7 @@ module Program =
             .Replace(Arguments.commentFormatString, a.Comment |?| "<no comment>")
             .Replace(Arguments.albumArtistFormatString, a.AlbumArtist |?| "<no album artist>")
             .Replace(Arguments.idFormatString, a.Id.ToString())
+            *)
         
     let idGenerator (library: Library.Library) : (unit -> int) =
         let mutable counter = if library.Audiobooks.IsEmpty then 0

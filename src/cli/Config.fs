@@ -25,7 +25,7 @@ module Config =
     let private emptyListConfig =
         {
             Filter = System.String.Empty
-            Format = defaultFormatString
+            Format = Formatter.CommandLine.defaultFormatString
             Ids = []
             Unrated = false
             NotCompleted = false

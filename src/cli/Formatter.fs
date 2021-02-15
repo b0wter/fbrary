@@ -1,28 +1,71 @@
 namespace b0wter.Fbrary
 
 open System.Text.RegularExpressions
+open b0wter.Fbrary.Audiobook
 
 module Formatter =
     type FormatReplacer = Audiobook.Audiobook -> string option
     type FormatReplacerWithFieldName = (string * FormatReplacer)
     
-    type CommandLine() =
-        let optionalElementsRegex = Regex("(\?\?)[^\?]*(\?\?)")
-        let elementRegex = Regex("(%%)[^\%]*(%%)")
+    module CommandLine =
         
-        let alwaysReplaceSymbol = "%%"
-        let replaceIfSomeSymbol = "??"
+        // If you change the regex you probably need to change `optionalSymbol` as well!
+        let optionalElementsRegex = Regex("(\?\?)[^\?]*(\?\?)") 
+        let optionalSymbol = "??" // If you change the symbol you need to change the regex as well!
+        let optionalSymbolLength = optionalSymbol.Length
         
-        let artistFormatString = "%%artist%%", fun (a: Audiobook.Audiobook) -> a.Artist
-        let albumFormatString = "%%album%%"
-        let titleFormatString = "%%title%%"
-        let albumArtistFormatString = "%%albumartist%%"
-        let durationFormatString = "%%duration%%"
-        let idFormatString = "%%id%%"
-        let ratingFormatString = "%%rating%%"
-        let commentFormatString = "%%comment%%"
+        // If you change the regex you probably need to change `replaceSymbol` as well!
+        let elementRegex = Regex("(%)[^\%]*(%)") 
+        let replaceSymbol = "%" // If you change the symbol you need to change the regex as well!
+        let replaceSymbolLength = replaceSymbol.Length
         
-        let (allFormatStrings : FormatReplacerWithFieldName list) = [ artistFormatString ]
+        let durationFormat = "h\:mm"
+        
+        let asReplace (s: string) = sprintf "%s%s%s" replaceSymbol s replaceSymbol
+        
+        let private artist = "artist" |> asReplace
+        let artistFormatString = artist, fun (a: Audiobook.Audiobook) -> a.Artist
+        
+        let private album = "album" |> asReplace
+        let albumFormatString = album, fun (a: Audiobook.Audiobook) -> a.Album
+        
+        let private title = "title" |> asReplace
+        let titleFormatString = title, fun (a: Audiobook.Audiobook) -> a.Title
+        
+        let private albumArtist = "albumartist" |> asReplace
+        let albumArtistFormatString = albumArtist, fun (a: Audiobook.Audiobook) -> a.AlbumArtist
+        
+        let private duration = "duration" |> asReplace
+        let durationFormatString = duration, fun (a: Audiobook.Audiobook) -> a.Duration.ToString(durationFormat) |> Some
+        
+        let private id = "id" |> asReplace
+        let idFormatString = id, fun (a: Audiobook.Audiobook) -> a.Id |> string |> Some
+        
+        let private rating = "rating" |> asReplace
+        let ratingFormatString = rating, fun (a: Audiobook.Audiobook) -> match a.Rating with
+                                                                         | Some i -> Some <| sprintf "%i/5" i
+                                                                         | None -> Some "-/5"
+        
+        let private comment = "comment" |> asReplace
+        let commentFormatString = comment, fun (a: Audiobook.Audiobook) -> a.Comment
+        
+        let private genre = "genre" |> asReplace
+        let genreFormatString = genre, fun (a: Audiobook.Audiobook) -> a.Genre
+        
+        let (allFormatStrings : FormatReplacerWithFieldName list) = [
+            artistFormatString
+            albumFormatString
+            titleFormatString
+            albumArtistFormatString
+            durationFormatString
+            idFormatString
+            ratingFormatString
+            commentFormatString
+            genreFormatString
+        ]
+        let allFormantPlaceholders = allFormatStrings |> List.map fst
+        
+        let defaultFormatString = "(%id%) %album% ??(%artist%) ??%duration%"
         
         /// Tries to replace a single format identifier (%%..%%) with a proper value.
         /// `target` is a simple format identifier like %%artist%%
@@ -45,52 +88,51 @@ module Formatter =
                         step accumulator tail
             step target allFormatStrings
             
+        /// Replace all format identifiers inside an optional format identifier (??...??) with proper values.
+        /// If the given book returns None for any identifier None is returned.
         let applySingleOptional (optionalMatch: string) (a: Audiobook.Audiobook) =
-            let elements = elementRegex.Matches(optionalMatch) |> Seq.map (fun m -> m.Value) |> List.ofSeq
-            let applyToSingle = applyToSingleFormatString (fun _ _ -> System.String.Empty) true
-            
-            let rec step (accumulator: string) (remainingElements: string list) : string option =
-                match remainingElements with
-                | [] -> Some accumulator
-                | head :: tail ->
-                    match applyToSingle head a with
-                    | Some result ->
-                        step (accumulator.Replace(head, result)) tail
-                    | None ->
-                        None
-            
-            step optionalMatch elements
-            
-        let applyAllOptional (format: string) (a: Audiobook.Audiobook) =
+            if optionalMatch.StartsWith(optionalSymbol) && optionalMatch.EndsWith(optionalSymbol) then
+                let optionalMatch = optionalMatch.Substring(optionalSymbolLength, optionalMatch.Length - 2 * optionalSymbolLength)
+                let elements = elementRegex.Matches(optionalMatch) |> Seq.map (fun m -> m.Value) |> List.ofSeq
+                let applyToSingle = applyToSingleFormatString (fun _ _ -> System.String.Empty) true
+                
+                let rec step (accumulator: string) (remainingElements: string list) : string option =
+                    match remainingElements with
+                    | [] -> Some accumulator
+                    | head :: tail ->
+                        match applyToSingle head a with
+                        | Some result ->
+                            step (accumulator.Replace(head, result)) tail
+                        | None ->
+                            None
+                
+                step optionalMatch elements
+            else
+                // In case the input is not of the form '?? ... ??' it is not a valid optional formatting.
+                Some optionalMatch
+        
+        /// Finds all optional format identifiers and replaces them with proper values.
+        /// Calls `applySingleOption` to do so.
+        let applyAllOptional (a: Audiobook.Audiobook) (format: string) =
             let elements = optionalElementsRegex.Matches(format) |> Seq.map (fun m -> m.Value)
             Seq.fold (fun (state: string) (next: string) ->
                     match applySingleOptional next a with
                     | Some text -> state.Replace(next, text)
+                    | None -> state.Replace(next, System.String.Empty)
+                ) format elements
+            
+        let applyAllSimple (a: Audiobook.Audiobook) (format: string) =
+            let elements = elementRegex.Matches(format) |> Seq.map (fun m -> m.Value)
+            let ifNotFound = fun (identifier: string) _ -> sprintf "<no %s set>" (identifier.Substring(replaceSymbolLength, identifier.Length  - 2 * replaceSymbolLength))
+            Seq.fold (fun (state: string) (next: string) ->
+                    match applyToSingleFormatString ifNotFound false next a with
+                    | Some text -> state.Replace(next, text)
                     | None -> System.String.Empty
                 ) format elements
-        
-        let applyTo (format: string) (a: Audiobook.Audiobook) =
-            let apply (ifNone: string -> string) ((key: string), (retriever: Audiobook.Audiobook -> string option)) : string =
-                match a |> retriever with
-                | Some value -> value
-                | None -> ifNone key
-            let applyAlwaysFormatter = apply (sprintf "<no %s set>")
-            let applyIfSomeFormatter = apply (fun _ -> System.String.Empty)
             
+        let applyAll (format: string) (a: Audiobook.Audiobook) =
+            // Apply all optional format strings because they include simple format strings.
+             format |> (applyAllOptional a)
+                    |> (applyAllSimple a)
             
-            //let alwaysFormatter = formatters |> List.map (fun symbol book -> alwaysReplaceSymbol + symbol + alwaysReplaceSymbol, book)
-            
-            0
         
-        (*
-        let allFormatStrings = [ artistFormatString; albumArtistFormatString
-                                 albumFormatString; titleFormatString; durationFormatString
-                                 idFormatString; ratingFormatString; commentFormatString ]
-        
-        let alwaysFormatStrings = allFormatStrings |> List.map (fun s -> sprintf "%s%s%s" alwaysReplaceSymbol s alwaysReplaceSymbol)
-        let ifSomeFormatStrings = allFormatStrings |> List.map (fun s -> sprintf "%s%s%s" replaceIfSomeSymbol s replaceIfSomeSymbol)
-        
-        let applyTo (format: string) (a: Audiobook.Audiobook) =
-            let formatters = 
-            List.fold (|>) format replacers
-            *)
