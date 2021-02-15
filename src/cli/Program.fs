@@ -166,7 +166,7 @@ module Program =
                         breaker <- false
                     else
                         match b0wter.FSharp.Parsers.parseInt userInput with
-                        | Some int when int <= 10 && int > 0 ->
+                        | Some int when int <= 5 && int > 0 ->
                             rating <- Some int
                             breaker <- false
                         | Some int ->
@@ -183,7 +183,7 @@ module Program =
             let previousRatingHint = match a.Rating with
                                      | Some rating -> sprintf "(the current rating is '%i')" rating
                                      | None -> String.Empty
-            do printfn "Please enter a rating from 1-10 for %s %s" x previousRatingHint
+            do printfn "Please enter a rating from 1-5 for %s %s" x previousRatingHint
             let rating = input ()
             { a with Rating = rating }
             
