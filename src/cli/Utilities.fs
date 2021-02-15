@@ -1,6 +1,11 @@
 namespace b0wter.Fbrary
 
 module Utilities =
+    module Parsers =
+        let int (s: string) : Result<int, string> =
+            let success, value = s |> System.Int32.TryParse
+            if success then Ok value
+            else Error "The given string cannot be converted to a number."
     
     module Result =
         

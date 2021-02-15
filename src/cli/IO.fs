@@ -92,24 +92,32 @@ module IO =
         else
             Error (sprintf "The file '%s' does not exist." filename)
 
-    let readLine (question: unit -> string) (transform: string -> Result<'a, string>) : 'a =
-        do Console.WriteLine(question())
+    let readLine (addNewLine: bool) (question: unit -> string) (transform: string -> Result<'a, string>) : 'a =
+        if addNewLine then
+            do Console.WriteLine(question())
+        else
+            do Console.Write(question())
+            
         let rec step () =
             let input = Console.ReadLine ()
             match input |> transform with
             | Ok i -> i
             | Error e ->
-                do printfn "%s" e
+                do printfn "%s Please try again." e
                 step ()
         step ()
 
-    let readYesNo (question: unit -> string) : bool =
+    let readYesNo (defaultCase: bool option) (question: unit -> string) : bool =
         do Console.WriteLine(question())
+            
         let rec step () =
             let input = Console.ReadKey true
-            if input.Key = ConsoleKey.Y then true
-            elif input.Key = ConsoleKey.N then false
-            else
+            match input.Key, defaultCase with
+            | ConsoleKey.Y, _ -> true
+            | ConsoleKey.N, _ -> false
+            | ConsoleKey.Enter, Some true -> true
+            | ConsoleKey.Enter, Some false -> false
+            | _, _ ->
                 do printfn "Invalid input. Please enter 'y' or 'n'."
                 step ()
         step ()

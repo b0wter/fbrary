@@ -149,7 +149,42 @@ module Program =
         
     let update (libraryFile: string) (updateConfig: Config.UpdateConfig) : Result<int, string> =
         result {
-            return! Error "Not implemented."
+            let! library = Library.fromFile libraryFile
+            let! book = library |> Library.findById updateConfig.Id
+            
+            let questionFor key value = fun () -> sprintf "The current %s is '%s'. Do you want to change that? [y/N]" key value
+            let readTextHint = fun () -> "Please enter the new value: "
+            
+            let artistQuestion = questionFor "artist" (book.Artist |?| "Empty")
+            let albumQuestion = questionFor "album" (book.Album |?| "Empty")
+            let albumArtistQuestion = questionFor "album artist" (book.AlbumArtist |?| "Empty")
+            let titleQuestion = questionFor "title" (book.Title |?| "Empty")
+            let genreQuestion = questionFor "genre" (book.Genre |?| "Empty")
+            let commentQuestion = questionFor "comment" (book.Comment |?| "Empty")
+            let ratingQuestion = questionFor "rating" (book.Rating |> Option.map string |?| "Empty")
+            
+            let updateStringProperty question current =
+                if IO.readYesNo (Some false) question then Some (IO.readLine false readTextHint Ok)
+                else current
+                
+            let updateRating current =
+                let validateRatingRange i = if i > 0 && i <= 5 then Ok i else Error "The number must be greater or equal to one and less or equal to five."
+                if IO.readYesNo (Some false) ratingQuestion then Some (IO.readLine false readTextHint (Utilities.Parsers.int >> Result.bind validateRatingRange))
+                else current
+            
+            let artist = updateStringProperty artistQuestion book.Artist
+            let album = updateStringProperty albumQuestion book.Album
+            let albumArtist = updateStringProperty albumArtistQuestion book.AlbumArtist
+            let title = updateStringProperty titleQuestion book.Title
+            let genre = updateStringProperty genreQuestion book.Genre
+            let comment = updateStringProperty commentQuestion book.Comment
+            let rating = updateRating book.Rating
+            
+            let updatedBook = { book with Artist = artist; Album = album; AlbumArtist = albumArtist; Title = title; Genre = genre; Comment = comment; Rating = rating }
+            let! updatedLibrary = library |> Library.updateBook updatedBook
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            
+            return 0           
         }
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
