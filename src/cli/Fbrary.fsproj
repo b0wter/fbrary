@@ -18,7 +18,6 @@
     <Compile Include="TagLib.fs" />
     <Compile Include="Formatter.fs" />
     <Compile Include="Program.fs" />
-    <Content Include="README.md" />
   </ItemGroup>
 
   <ItemGroup>
