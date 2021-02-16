@@ -1,7 +1,6 @@
 namespace b0wter.Fbrary
 
 open System.Text.RegularExpressions
-open b0wter.Fbrary.Audiobook
 
 module Formatter =
     module RatingSymbols =
@@ -11,6 +10,10 @@ module Formatter =
         let emptyCircle = '○'
         let filledCircle = '●'
         let dottedCircle = '◌'
+        
+    module CompletedSymbols =
+        let completed = "✓"
+        let notCompleted = "✗"
             
     type FormatReplacer = Audiobook.Audiobook -> string option
     type FormatReplacerWithFieldName = (string * FormatReplacer)
@@ -65,6 +68,18 @@ module Formatter =
     let private genre = "genre" |> asReplace
     let genreFormatString = genre, fun (a: Audiobook.Audiobook) -> a.Genre
     
+    let private completedString = "completed_string" |> asReplace
+    let completedStringFormatString = completedString, fun (a: Audiobook.Audiobook) ->
+        if a.Completed then "yes"
+        else "no"
+        |> Some
+        
+    let private completedSymbol = "completed_symbol" |> asReplace
+    let completedSymbolFormatString = completedSymbol, fun (a: Audiobook.Audiobook) ->
+        if a.Completed then CompletedSymbols.completed
+        else CompletedSymbols.notCompleted
+        |> Some
+    
     let (allFormatStrings : FormatReplacerWithFieldName list) = [
         artistFormatString
         albumFormatString
@@ -76,6 +91,8 @@ module Formatter =
         ratingDotsFormatString
         commentFormatString
         genreFormatString
+        completedSymbolFormatString
+        completedStringFormatString
     ]
     let allFormantPlaceholders = allFormatStrings |> List.map fst
     
@@ -224,6 +241,8 @@ module Formatter =
             (ratingDots, "Rating")
             (duration, "Duration")
             (id, "Id")
+            (completedSymbol, "Cmpl")
+            (completedString, "Cmpl")
         ]
         
         type Cell = {
