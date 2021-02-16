@@ -7,8 +7,11 @@ module Formatter =
         let empty = '░'
         let filled = '█'
         
-        let emptyCircle = '○'
+        //let emptyCircle = '○'
+        let emptyCircle = '⚬'
         let filledCircle = '●'
+        //let emptyCircle = '⭕'
+        //let filledCircle = '⬤'
         let dottedCircle = '◌'
         
     module CompletedSymbols =
