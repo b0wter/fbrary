@@ -82,9 +82,18 @@ module Program =
         else
             Ok None
 
-    let formattedAudiobook (format: string) (a: Audiobook.Audiobook) : string =
-        a |> Formatter.CommandLine.applyAll format
-        
+    let formattedAudiobook (format: string option) (table: string option) (books: Audiobook.Audiobook list) : string list =
+        match format, table with
+        | Some _, Some t ->
+            do printfn "You have set a format and specified the table option. The format specifier is ignored."
+            books |> Formatter.Table.apply t
+        | Some f, None ->
+            books |> List.map (Formatter.CommandLine.applyAll f)
+        | None, Some t ->
+            books |> Formatter.Table.apply t
+        | None, None ->
+            books |> List.map (Formatter.CommandLine.applyAll Formatter.CommandLine.defaultFormatString)
+            
     let idGenerator (library: Library.Library) : (unit -> int) =
         let mutable counter = if library.Audiobooks.IsEmpty then 0
                               else  library.Audiobooks |> List.map (fun a -> a.Id) |> List.max
@@ -142,7 +151,8 @@ module Program =
             | Some l ->
                 let filtered = l.Audiobooks |> List.filter combinedPredicate
                 do if filtered.IsEmpty then do printfn "Found no matching audio books."
-                   else do filtered |> List.iter (fun f -> printfn "%s" (f |> formattedAudiobook listConfig.Format))
+                   else do
+                       filtered |> formattedAudiobook listConfig.Format listConfig.Table |> List.iter (printfn "%s")
                 return 0
             | None ->
                 return! (Error "The given library file does not exist. There is nothing to list.")

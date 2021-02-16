@@ -8,7 +8,7 @@ module Arguments =
                           "Note that all files inside a folder are interpreted as a single audiobook. " +
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
-    let formattedFormatStringList = System.String.Join(", ", Formatter.CommandLine.allFormantPlaceholders)
+    let formattedFormatStringList = System.String.Join(", ", Formatter.allFormantPlaceholders)
        
     type AddArgs =
         | [<MainCommand; Last>] Path of string
@@ -22,6 +22,7 @@ module Arguments =
     type ListArgs =
         | [<MainCommand; First>] Filter of string
         | Format of string
+        | Table of string
         | Ids of int list
         | Unrated
         | NotCompleted
@@ -30,7 +31,8 @@ module Arguments =
             member s.Usage =
                 match s with
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
-                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. Only used with the 'list' command." formattedFormatStringList
+                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. You can only use either 'table' or this option." formattedFormatStringList
+                | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
                 | Ids _ -> "Only list audio books with the given ids."
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."

@@ -15,8 +15,9 @@ module Config =
         }
     
     type ListConfig = {
-        Filter: string
-        Format: string
+        Filter: string 
+        Format: string option
+        Table: string option
         Ids: int list
         Unrated: bool
         NotCompleted: bool
@@ -25,7 +26,8 @@ module Config =
     let private emptyListConfig =
         {
             Filter = System.String.Empty
-            Format = Formatter.CommandLine.defaultFormatString
+            Format = None
+            Table = None
             Ids = []
             Unrated = false
             NotCompleted = false
@@ -76,8 +78,9 @@ module Config =
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
-        | Format format -> { config with Format = format }
+        | Format format -> { config with Format = Some format }
         | Filter filter -> { config with Filter = filter }
+        | Table table -> { config with Table = Some table }
         | Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
