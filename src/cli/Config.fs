@@ -56,6 +56,10 @@ module Config =
         Ids: int list
     }
     
+    type AbortedConfig = {
+        Ids: int list
+    }
+    
     type UnmatchedConfig = {
         Path: string
     }
@@ -68,6 +72,7 @@ module Config =
         | Rate of RateConfig
         | Completed of CompletedConfig
         | NotCompleted of NotCompletedConfig
+        | Aborted of AbortedConfig
         | Unmatched of UnmatchedConfig
         | Uninitialized
     
@@ -116,6 +121,7 @@ module Config =
                             | Rate _
                             | Unmatched _
                             | NotCompleted _
+                            | Aborted _
                             | Completed _ -> emptyAddConfig
             let updatedAddConfig = add.GetAllResults() |> List.fold applyAddArg addConfig
             { config with Command = Add updatedAddConfig }
@@ -125,6 +131,8 @@ module Config =
             { config with Command = Completed { Ids = ids } }
         | MainArgs.NotCompleted ids ->
             { config with Command = NotCompleted { Ids = ids } }
+        | MainArgs.Aborted ids ->
+            { config with Command = Aborted { Ids = ids } }
         | MainArgs.Unmatched path ->
             { config with Command = Unmatched { Path = path } }
         | MainArgs.List l ->
@@ -137,6 +145,7 @@ module Config =
                              | Rate _
                              | Unmatched _
                              | NotCompleted _
+                             | Aborted _
                              | Completed _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             { config with Command = List updatedListConfig }

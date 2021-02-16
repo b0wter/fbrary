@@ -17,6 +17,7 @@ module Formatter =
     module CompletedSymbols =
         let completed = "✓"
         let notCompleted = "✗"
+        let aborted = "!"
             
     type FormatReplacer = Audiobook.Audiobook -> string option
     type FormatReplacerWithFieldName = (string * FormatReplacer)
@@ -73,14 +74,18 @@ module Formatter =
     
     let private completedString = "completed_string" |> asReplace
     let completedStringFormatString = completedString, fun (a: Audiobook.Audiobook) ->
-        if a.Completed then "yes"
-        else "no"
+        match a.State with
+        | Audiobook.State.Aborted -> "abrt"
+        | Audiobook.State.Completed -> "yes"
+        | Audiobook.State.NotCompleted -> "not"
         |> Some
         
     let private completedSymbol = "completed_symbol" |> asReplace
     let completedSymbolFormatString = completedSymbol, fun (a: Audiobook.Audiobook) ->
-        if a.Completed then CompletedSymbols.completed
-        else CompletedSymbols.notCompleted
+        match a.State with
+        | Audiobook.State.Aborted -> CompletedSymbols.aborted
+        | Audiobook.State.Completed -> CompletedSymbols.completed
+        | Audiobook.State.NotCompleted -> CompletedSymbols.notCompleted
         |> Some
     
     let (allFormatStrings : FormatReplacerWithFieldName list) = [

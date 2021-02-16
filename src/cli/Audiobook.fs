@@ -6,6 +6,14 @@ open b0wter.FSharp
 
 module Audiobook =
     
+    type State =
+        /// Use if you have listened to the whole book.
+        | Completed
+        /// Use if you have not yet listened to a book or have not completed it.
+        | NotCompleted
+        /// Use if you stopped listening to a book because you did not like it.
+        | Aborted
+        
     type AudiobookSource
         = MultiFile of string list
         | SingleFile of string
@@ -26,7 +34,7 @@ module Audiobook =
         HasPicture: bool
         Comment: string option
         Rating: Rating.Rating option
-        Completed: bool
+        State: State
     }
     
     //
@@ -41,7 +49,7 @@ module Audiobook =
     let hasPicture a = a.HasPicture
     let comment a = a.Comment
     let rating a = a.Rating
-    let completed a = a.Completed
+    let state a = a.State
     
     //
     // Functions for updating the properties of an audiobook.
@@ -56,13 +64,16 @@ module Audiobook =
         { a with Id = id }
         
     let asCompleted (a: Audiobook) : Audiobook =
-        { a with Completed = true }
+        { a with State = Completed }
         
     let asNotCompleted (a: Audiobook) : Audiobook =
-        { a with Completed = false }
+        { a with State = NotCompleted }
         
-    let withCompletionStatus (b: bool) (a: Audiobook) : Audiobook =
-        { a with Completed = b }
+    let asAborted (a: Audiobook) : Audiobook =
+        { a with State = Aborted }
+        
+    let withCompletionStatus (s: State) (a: Audiobook) : Audiobook =
+        { a with State = s }
         
     //
     // Other functions.
@@ -80,7 +91,7 @@ module Audiobook =
             HasPicture = hasPicture
             Comment = comment
             Rating = rating
-            Completed = false
+            State = NotCompleted
         }
     
     let createInteractive source artist album albumArtist title genre duration hasPicture comment (idGenerator: unit -> int) =

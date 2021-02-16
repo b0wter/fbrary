@@ -123,8 +123,8 @@ module Program =
         
     let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
         let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
-        let completedPredicate = fun (a: Audiobook.Audiobook) -> a.Completed = true
-        let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.Completed = false
+        let completedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.Completed
+        let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.NotCompleted
         let filterPredicate pattern = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString pattern
         let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
                           else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
@@ -237,7 +237,7 @@ module Program =
                             | Some i -> fun (a: Audiobook.Audiobook) -> a.Id = i
                             | None -> fun (a: Audiobook.Audiobook) -> a.Rating = None
                             
-            let books = library.Audiobooks |> Utilities.List.splitBy predicate
+            let books = library.Audiobooks |> List.splitBy predicate
             
             if books.Matching.Length > 0 then
                 let updatedBooks = books.Matching |> List.map rateSingleBook
@@ -299,15 +299,31 @@ module Program =
             | Config.Rate rateConfig ->
                 return! rate config.LibraryFile rateConfig.Id
             | Config.Completed completedConfig ->
-                return! completedStatus config.LibraryFile completedConfig.Ids true
+                return! completedStatus config.LibraryFile completedConfig.Ids Audiobook.State.Completed
             | Config.NotCompleted notCompletedConfig ->
-                return! completedStatus config.LibraryFile notCompletedConfig.Ids false
+                return! completedStatus config.LibraryFile notCompletedConfig.Ids Audiobook.State.NotCompleted
+            | Config.Aborted abortedConfig ->
+                return! completedStatus config.LibraryFile abortedConfig.Ids Audiobook.State.Aborted
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1
         }
+        
+        let dummy = Audiobook.createWith (Audiobook.SingleFile "non-existing-file.mp3")
+                                 (Some "Artist")
+                                 (Some "Album")
+                                 (Some "Album Artist")
+                                 (Some "Title")
+                                 (Some "Genre")
+                                 (TimeSpan(1, 0, 0))
+                                 false
+                                 None
+                                 (fun () -> 1)
+                                 (Rating.create Some (fun _ -> None) 3)
+        let dummyLib = { Library.empty with Audiobooks = [ dummy ] }
+        let s = dummyLib |> Library.serialize
         
         match r with
         | Ok statusCode -> statusCode
