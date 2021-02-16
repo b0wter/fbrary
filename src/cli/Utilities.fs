@@ -25,7 +25,7 @@ module Utilities =
             let rec step (nonMatchingAccumulator: 'a list) (matchingAccumulator: 'a list) (remaining: 'a list) =
                 match remaining with
                 | [] ->
-                    {| NonMatching = nonMatchingAccumulator; Matching = matchingAccumulator |}
+                    {| NonMatching = nonMatchingAccumulator |> List.rev; Matching = matchingAccumulator |> List.rev |}
                 | head :: tail when head |> predicate ->
                     step nonMatchingAccumulator (head :: matchingAccumulator) tail
                 | head :: tail ->

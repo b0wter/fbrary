@@ -18,6 +18,7 @@ module Config =
         Filter: string 
         Format: string option
         Table: string option
+        MaxTableColumnWidth: int
         Ids: int list
         Unrated: bool
         NotCompleted: bool
@@ -28,6 +29,7 @@ module Config =
             Filter = System.String.Empty
             Format = None
             Table = None
+            MaxTableColumnWidth = 64
             Ids = []
             Unrated = false
             NotCompleted = false
@@ -81,6 +83,7 @@ module Config =
         | Format format -> { config with Format = Some format }
         | Filter filter -> { config with Filter = filter }
         | Table table -> { config with Table = Some table }
+        | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = size }
         | Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }

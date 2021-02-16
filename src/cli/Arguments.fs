@@ -23,6 +23,7 @@ module Arguments =
         | [<MainCommand; First>] Filter of string
         | Format of string
         | Table of string
+        | MaxTableColumnWidth of int
         | Ids of int list
         | Unrated
         | NotCompleted
@@ -33,6 +34,7 @@ module Arguments =
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
                 | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. You can only use either 'table' or this option." formattedFormatStringList
                 | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
+                | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option."
                 | Ids _ -> "Only list audio books with the given ids."
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."
