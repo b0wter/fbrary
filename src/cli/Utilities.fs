@@ -13,7 +13,7 @@ module Utilities =
             match o with
             | Some b -> Ok b
             | None -> Error (errorCase)
-
+            
     module String =
         
         let contains (searchString: string) (content: string) =

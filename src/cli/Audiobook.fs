@@ -25,7 +25,7 @@ module Audiobook =
         Duration: TimeSpan
         HasPicture: bool
         Comment: string option
-        Rating: int option
+        Rating: Rating.Rating option
         Completed: bool
     }
     
@@ -46,7 +46,7 @@ module Audiobook =
     //
     // Functions for updating the properties of an audiobook.
     //
-    let withRating (rating: int) (a: Audiobook) : Audiobook =
+    let withRating (rating: Rating.Rating) (a: Audiobook) : Audiobook =
         { a with Rating = Some rating }
         
     let withComment (comment: string) (a: Audiobook) : Audiobook =
@@ -106,19 +106,19 @@ module Audiobook =
                 else
                     value
                     
-        let ratingFromInput () : int option =
+        let ratingFromInput () : Rating.Rating option =
             let mutable breaker = true
             let mutable value = None
             do printfn "Do you want to add a rating? [y/N]"
             if Console.ReadKey(true).Key = ConsoleKey.Y then
                 do printfn "Please enter a value from 1 to 10."
                 while breaker do
-                    match Parsers.parseInt(Console.ReadLine()) with
-                    | Some i ->
+                    match Parsers.parseInt(Console.ReadLine()) |> Result.fromOption "Input is not a number." |> Result.bind (Rating.create Ok Error) with
+                    | Ok i ->
                         do breaker <- false
                         do value <- Some i
-                    | None ->
-                        printfn "Please enter a value from 1 to 10."
+                    | Error e ->
+                        printfn "%s" e
                         ()
                 value
             else

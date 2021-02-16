@@ -5,6 +5,7 @@ open System
 open System.IO
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Operators
+open b0wter.Fbrary.Utilities
  
 module Program =
         
@@ -168,8 +169,7 @@ module Program =
                 else current
                 
             let updateRating current =
-                let validateRatingRange i = if i > 0 && i <= 5 then Ok i else Error "The number must be greater or equal to one and less or equal to five."
-                if IO.readYesNo (Some false) ratingQuestion then Some (IO.readLine false readTextHint (Utilities.Parsers.int >> Result.bind validateRatingRange))
+                if IO.readYesNo (Some false) ratingQuestion then Some (IO.readLine false readTextHint (Parsers.int >> Result.bind (Rating.create Ok Error)))
                 else current
             
             let artist = updateStringProperty artistQuestion book.Artist
@@ -190,7 +190,7 @@ module Program =
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
             
         let rateSingleBook (a: Audiobook.Audiobook) : Audiobook.Audiobook =
-            let input () =
+            let input () : Rating.Rating option =
                 let mutable breaker = true
                 let mutable rating = None
                 while breaker do
@@ -200,14 +200,12 @@ module Program =
                         rating <- None
                         breaker <- false
                     else
-                        match b0wter.FSharp.Parsers.parseInt userInput with
-                        | Some int when int <= 5 && int > 0 ->
-                            rating <- Some int
+                        match b0wter.FSharp.Parsers.parseInt userInput |> Result.fromOption "The input is not a valid number." |> Result.bind (Rating.create Ok Error) with
+                        | Ok r ->
+                            rating <- Some r
                             breaker <- false
-                        | Some int ->
-                            do printfn "The number '%i' is out of range." int
-                        | None ->
-                            do printfn "The input is not a valid number."
+                        | Error e ->
+                            do printfn "%s" e
                 rating
             
             let x = match (a.Artist, a.Album, a.Title) with
@@ -216,9 +214,9 @@ module Program =
                     | Some artist, _, _ -> sprintf "'%s' (%s)" (a.Source |> Audiobook.sourceAsString) artist
                     | _, _, _ -> sprintf "'%s'" (a.Source |> Audiobook.sourceAsString)
             let previousRatingHint = match a.Rating with
-                                     | Some rating -> sprintf "(the current rating is '%i')" rating
+                                     | Some rating -> sprintf "(the current rating is '%i')" (rating |> Rating.value)
                                      | None -> String.Empty
-            do printfn "Please enter a rating from 1-5 for %s %s" x previousRatingHint
+            do printfn "Please enter a rating from %i-%i for %s %s" Rating.minValue Rating.maxValue x previousRatingHint
             let rating = input ()
             { a with Rating = rating }
             

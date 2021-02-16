@@ -42,9 +42,9 @@ module Formatter =
         let idFormatString = id, fun (a: Audiobook.Audiobook) -> a.Id |> string |> Some
         
         let private rating = "rating" |> asReplace
-        let ratingFormatString = rating, fun (a: Audiobook.Audiobook) -> match a.Rating with
-                                                                         | Some i -> Some <| sprintf "%i/5" i
-                                                                         | None -> Some "-/5"
+        let ratingFormatString = rating, fun (a: Audiobook.Audiobook) -> match a.Rating |> Option.map Rating.value with
+                                                                         | Some i -> Some <| sprintf "%i/%i" i Rating.maxValue
+                                                                         | None -> Some <| sprintf "-/%i" Rating.maxValue
         
         let private comment = "comment" |> asReplace
         let commentFormatString = comment, fun (a: Audiobook.Audiobook) -> a.Comment

@@ -10,6 +10,7 @@
   <ItemGroup>
     <Compile Include="Utilities.fs" />
     <Compile Include="IO.fs" />
+    <Compile Include="Rating.fs" />
     <Compile Include="Metadata.fs" />
     <Compile Include="Audiobook.fs" />
     <Compile Include="Formatter.fs" />
