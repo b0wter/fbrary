@@ -83,7 +83,7 @@ module Config =
         | Format format -> { config with Format = Some format }
         | Filter filter -> { config with Filter = filter }
         | Table table -> { config with Table = Some table }
-        | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = size }
+        | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = if size >= 4 then size else 4 }
         | Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }

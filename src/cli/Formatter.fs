@@ -305,8 +305,8 @@ module Formatter =
                 let header = tableHeaders |> List.find (fun (key, _) -> key = identifier) |> snd
                 let maxWidth = Math.Min(Math.Max(values |> List.maxBy snd |> snd, header.Length), maxColumnWidth)
                 {
-                    Width = maxWidth //Math.Min(Math.Max(maxWidth, identifier.Length), maxColumnWidth)
-                    Header = header // tableHeaders |> List.find (fun (key, _) -> key = identifier) |> snd
+                    Width = maxWidth
+                    Header = header
                     Cells = values |> List.map (fun (content, _) -> { Content = content; Width = maxWidth })
                 }
             identifiers |> List.map createColumn
@@ -320,5 +320,4 @@ module Formatter =
             let columns = books |> createColumns maxColumnWidth validIdentifiers.Matching
             let rows = columns |> columnsToRows
             (columns |> createHeader) @ (rows |> List.map createRow) @ [ columns |> createFooter ]
-            
             
