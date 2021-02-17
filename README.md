@@ -1,3 +1,5 @@
+![logo](https://raw.githubusercontent.com/b0wter/fbrary/master/logo.png)
+
 Audio Book Library
 ==================
 This is a simple CLI tool that allows you to manage your audio book library.
@@ -43,6 +45,7 @@ There are the following additional parameters:
  * `--unrated` - lists books that do not have a rating
  * `--ids $ID1 $ID2 $..` - list only books with the given idst
  * `--format $FORMAT_STRING` - configure how to display the results (see below)
+ * `--table $FORMAT_STRING` - display results as table with the given format (see below)
 
 You can freely combine the different arguments:
 ```bash
@@ -71,10 +74,20 @@ If you have multiple placeholders inside the same `??` the string will be empty 
 ??%genre% %artist% %album%?? -> "" if either genre, artist or album is empty
 ```
 
+### Table
+The format string uses the same placeholders like `--format` but `??` is not supported. Fields that are empty are blank by default. Any characters besides placeholders are ignored. E.g.
+```
+--table "%artist% %album%"
+```
+is the same as the following two:
+```
+--table "%artist%%album%"
+--table "%artist% (Artist) | %album% (Album)"
+```
+Columns are limited to 64 characters (for the content additional characters are used as padding and border) by default. Use the `--maxcolwidth` (or `-w`) switch to override the value. Any value less than four will be changed to four.
+
 Update
 ------
-**This command is currently in development.**
-
 ```bash
 ./Fbrary --libraryFile $LIBRARY_FILENAME update $ID
 ```
@@ -105,12 +118,27 @@ NotCompleted
 Mark one or more audio books as not completed.
 Use the `list` command to find `$ID`s.
 
+Aborted
+-------
+```bash
+./Fbrary --libraryFile $LIBRARY_FILENAME aborted $ID1 $ID2 $..
+```
+Mark one or more audio books as aborted. Use this to mark books that you no longer want to listen to.
+Use the `list` command to find `$ID`s.
+
 Unmatched
 -------
 ```bash
 ./Fbrary --libraryFile $LIBRARY_FILENAME unmatched $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
+
+Files
+-----
+```bash
+./Fbrary --libraryFile $LIBRARY_FILENAME files $ID
+./Fbrary --libraryFile $LIBRARY_FILENAME files $ID --
+```
 
 Hints
 =====
