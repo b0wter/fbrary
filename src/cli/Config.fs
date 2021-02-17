@@ -8,11 +8,10 @@ module Config =
         Path: string
         NonInteractive: bool
     }
-    let private emptyAddConfig =
-        {
-            Path = System.String.Empty
-            NonInteractive = false
-        }
+    let private emptyAddConfig = {
+        Path = System.String.Empty
+        NonInteractive = false
+    }
     
     type ListConfig = {
         Filter: string 
@@ -24,17 +23,16 @@ module Config =
         NotCompleted: bool
         Completed: bool
     }
-    let private emptyListConfig =
-        {
-            Filter = System.String.Empty
-            Format = None
-            Table = None
-            MaxTableColumnWidth = 64
-            Ids = []
-            Unrated = false
-            NotCompleted = false
-            Completed = false
-        }
+    let private emptyListConfig = {
+        Filter = System.String.Empty
+        Format = None
+        Table = None
+        MaxTableColumnWidth = 64
+        Ids = []
+        Unrated = false
+        NotCompleted = false
+        Completed = false
+    }
     
     type RemoveConfig = {
         Id: int
@@ -60,6 +58,16 @@ module Config =
         Ids: int list
     }
     
+    type FilesConfig = {
+        Id: int
+        Separator: FileListingSeparator
+    }
+    
+    let private emptyFilesConfig = {
+        Id = -1
+        Separator = NewLine
+    }
+    
     type UnmatchedConfig = {
         Path: string
     }
@@ -74,6 +82,7 @@ module Config =
         | NotCompleted of NotCompletedConfig
         | Aborted of AbortedConfig
         | Unmatched of UnmatchedConfig
+        | Files of FilesConfig
         | Uninitialized
     
     type Config = {
@@ -98,6 +107,11 @@ module Config =
         match a with
         | Path p -> { config with Path = p }
         | NonInteractive -> { config with NonInteractive = true }
+        
+    let applyFilesArg (config: FilesConfig) (f: FilesArgs) : FilesConfig =
+        match f with
+        | Id id -> { config with Id = id }
+        | Separator s -> { config with Separator = s }
     
     // Define functions that take arguments and apply them to a config.
     // Use this to fold the configuration from the arguments.
@@ -121,6 +135,7 @@ module Config =
                             | Rate _
                             | Unmatched _
                             | NotCompleted _
+                            | Files _
                             | Aborted _
                             | Completed _ -> emptyAddConfig
             let updatedAddConfig = add.GetAllResults() |> List.fold applyAddArg addConfig
@@ -133,6 +148,21 @@ module Config =
             { config with Command = NotCompleted { Ids = ids } }
         | MainArgs.Aborted ids ->
             { config with Command = Aborted { Ids = ids } }
+        | MainArgs.Files files ->
+            let filesConfig = match config.Command with
+                              | Add _
+                              | List _
+                              | Remove _
+                              | Update _
+                              | Uninitialized
+                              | Rate _
+                              | Unmatched _
+                              | NotCompleted _
+                              | Aborted _
+                              | Completed _ -> emptyFilesConfig
+                              | Files f -> f
+            let updatedFilesConfig = files.GetAllResults() |> List.fold applyFilesArg filesConfig
+            { config with Command = Files updatedFilesConfig  }
         | MainArgs.Unmatched path ->
             { config with Command = Unmatched { Path = path } }
         | MainArgs.List l ->
@@ -145,6 +175,7 @@ module Config =
                              | Rate _
                              | Unmatched _
                              | NotCompleted _
+                             | Files _
                              | Aborted _
                              | Completed _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig

@@ -5,6 +5,7 @@ open System
 open System.IO
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Operators
+open b0wter.Fbrary
 open b0wter.Fbrary.Utilities
  
 module Program =
@@ -277,6 +278,17 @@ module Program =
                 return 0
         }
         
+    let listFiles libraryFile (config: Config.FilesConfig) =
+        result {
+            let! library = Library.fromFile libraryFile
+            let! book = Library.findById config.Id library
+            let files = book |> Audiobook.allFiles |> List.map (fun s -> sprintf "\"%s\"" s)
+            let separator = match config.Separator with
+                            | Arguments.FileListingSeparator.Space -> " "
+                            | Arguments.FileListingSeparator.NewLine -> Environment.NewLine
+            return files |> b0wter.FSharp.String.join separator
+        }
+        
     [<EntryPoint>]
     let main argv =
         let r = result {
@@ -304,6 +316,10 @@ module Program =
                 return! completedStatus config.LibraryFile notCompletedConfig.Ids Audiobook.State.NotCompleted
             | Config.Aborted abortedConfig ->
                 return! completedStatus config.LibraryFile abortedConfig.Ids Audiobook.State.Aborted
+            | Config.Files filesConfig ->
+                let! string = listFiles config.LibraryFile filesConfig
+                do printfn "%s" string
+                return 0
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->

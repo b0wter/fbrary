@@ -11,7 +11,7 @@ module Arguments =
     let formattedFormatStringList = System.String.Join(", ", Formatter.allFormantPlaceholders)
        
     type AddArgs =
-        | [<MainCommand; Last>] Path of string
+        | [<MainCommand>] Path of string
         | [<AltCommandLine("-n")>] NonInteractive
         interface IArgParserTemplate with
             member s.Usage =
@@ -20,10 +20,10 @@ module Arguments =
                 | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
         
     type ListArgs =
-        | [<MainCommand; First>] Filter of string
-        | Format of string
-        | Table of string
-        | [<CustomCommandLine("--maxcolwidth")>] MaxTableColumnWidth of int
+        | [<MainCommand>] Filter of string
+        | [<AltCommandLine("-f")>] Format of string
+        | [<AltCommandLine("-t")>] Table of string
+        | [<CustomCommandLine("--maxcolwidth"); AltCommandLine("-w")>] MaxTableColumnWidth of int
         | Ids of int list
         | Unrated
         | NotCompleted
@@ -39,19 +39,33 @@ module Arguments =
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."
                 | Completed -> "Only list books that have been completely listened to."
+    
+    type FileListingSeparator =
+        | Space
+        | NewLine
+                
+    type FilesArgs =
+        | [<MainCommand>] Id of int
+        | [<AltCommandLine("-s")>] Separator of FileListingSeparator
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Id _ -> "Id of the audiobook whose files you want to list. Use the `list` command to find ids."
+                | Separator _ -> "Define the separator for listing multiple files. Defaults to 'newline'. Possible values are: 'space' and 'newline'."
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
-        | [<AltCommandLine("-l"); Mandatory>] Library of string
-        | [<Last; CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
-        | [<Last; CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
-        | [<Last; CliPrefix(CliPrefix.None)>] Remove of int
-        | [<Last; CliPrefix(CliPrefix.None)>] Update of int
-        | [<Last; CliPrefix(CliPrefix.None)>] Rate of int option
-        | [<Last; CliPrefix(CliPrefix.None)>] Completed of int list
-        | [<Last; CliPrefix(CliPrefix.None)>] NotCompleted of int list
-        | [<Last; CliPrefix(CliPrefix.None)>] Aborted of int list
-        | [<Last; CliPrefix(CliPrefix.None)>] Unmatched of string
+        | [<AltCommandLine("-l"); Mandatory; First>] Library of string
+        | [<CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
+        | [<CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
+        | [<CliPrefix(CliPrefix.None)>] Remove of int
+        | [<CliPrefix(CliPrefix.None)>] Update of int
+        | [<CliPrefix(CliPrefix.None)>] Rate of int option
+        | [<CliPrefix(CliPrefix.None)>] Completed of int list
+        | [<CliPrefix(CliPrefix.None)>] NotCompleted of int list
+        | [<CliPrefix(CliPrefix.None)>] Aborted of int list
+        | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
+        | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -65,6 +79,7 @@ module Arguments =
                 | Completed _ -> "Mark the book with the given id as completely listened to."
                 | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
                 | Aborted _ -> "Mark the book with the given id as aborted meaning you stopped listening to it."
+                | Files _ -> "List all files of an audio book. Use the `list` command to find book ids."
                 | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
                 
 
