@@ -14,8 +14,6 @@ mkdir -p out
 rm out/*
 LOCATION="bin/Release/net5.0/${1}/publish"
 cd ${LOCATION}
-rm *.dll
-rm *.pdb
 zip -r "${1}" *
 cd -
 mv "${LOCATION}/${1}.zip" out/

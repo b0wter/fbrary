@@ -62,7 +62,7 @@ module Program =
         elif Directory.Exists(path) then
             addDirectory addConfig path idGenerator
         else
-            Error "The given path does not exist."
+            Error <| sprintf "The given path '%s' does not exist." path
             
     let private readLibraryOr (ifNotExisting: unit -> Library.Library) (filename: string) : Result<Library.Library, string> =
         if File.Exists(filename) then

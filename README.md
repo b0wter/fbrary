@@ -27,6 +27,7 @@ If you want to skip this step you need to pass the `--noninteractive` (`-n`) arg
 ```bash
 ./Fbrary --libraryFile $LIBRARY_FILENAME add -n $PATH
 ```
+If you want to add multiple books at once scroll down to the **hints** section.
 
 Remove
 ------
@@ -146,6 +147,11 @@ Files
 
 Hints
 =====
+
+bash
+----
+*Note: this works perfectly fine using the linux subsystem for Windows (WSL). You will however need to use the linux binaries instead of the windows binaries.*
+
 If you want to quickly add many folders without checking their meta information use this command (bash required):
 ```bash
 find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -mindepth 1 -type d -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
@@ -157,3 +163,17 @@ If you store many mp3/ogg files in a folder and want to add each file as its own
 find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -name "*.mp3" -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
 ```
 
+powershell
+----------
+If you want to add multiple mp3 files in the same folder as independent books use this command and replace the variables accordingly:
+```
+Get-ChildItem $PATH_TO_FOLDER *.mp3 | Select-Object FullName -expandproperty FullName | % {./Fbrary -l $LIBRARY_FILE add -n $_ }
+```
+To add each folder in a folder as an independent book use the following command:
+```
+Get-ChildItem $BASE_FOLDER -Directory | Select-Object FullName -expandproperty FullName | % {./Fbrary -l $LIBRARY_FILE add -n $_ }
+```
+
+cmd
+---
+I am unsure whether the default windows temrinal prompt allows you to do the above. If you know how please let me know.
