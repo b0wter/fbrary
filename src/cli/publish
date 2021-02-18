@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -e
+PROJECT_NAME=fbrary
+OWNER=b0wter
+REMOTE=https://api.github.com
+
+VERSIONS=(linux-x64 linux-arm64 linux-arm win7-x64 win7-x86 win10-x64 win10-x86 osx-x64) 
+
+case $1 in
+        patch)
+                ;;
+        minor)
+                ;;
+        major)
+                ;;
+        *)
+                echo "You need to specify what kind of release this is. Please add on of the following arguments:"
+                echo "    patch, minor or major"
+                exit -1
+                ;;
+esac
+
+echo "sourcing credentials"
+source credentials
+
+echo "adding new tag"
+source add_tag
+
+#
+# Create binaries. Replace this with your own script.
+#
+for ARCHITECTURE in ${VERSIONS[@]}; do
+	echo "building $ARCHITECTURE"
+	./build_architecture "$ARCHITECTURE"
+	mv "out/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${NEW_TAG}.zip"
+done
+
+#
+# Create Github release.
+#
+# Check wether a release with this tag exists.
+RELEASES=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases | jq '.[].tag_name')
+
+if [[ $RELEASES != *"$NEW_TAG"* ]]; then
+	# Release does NOT exist -> create it!
+	echo "The release does not exist, creating a new one."
+	curl --request POST --header "Authorization: token $GITHUB_ACCESS_KEY" --header "Content-Type: application/json" --data "{\"tag_name\": \"$NEW_TAG\",\"target_commitish\": \"master\"}" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases | jq '.id'
+else
+	echo "The release exists."
+	exit 1
+fi
+
+# Get the upload_url for the release.
+UPLOAD_URL=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases/tags/$NEW_TAG | jq '.upload_url' | rev | cut -c15- | rev | cut -c2-)
+
+for ARCHITECTURE in ${VERSIONS[@]}; do
+	echo "Uploading asset for architecture $ARCHITECTURE (version $NEW_TAG)."
+	curl --header "Authorization: token $GITHUB_ACCESS_KEY" \
+	     --header "Content-Type: application/zip" \
+		 --data-binary "@out/${ARCHITECTURE}_${NEW_TAG}.zip" \
+             $UPLOAD_URL?name=${ARCHITECTURE}_${NEW_TAG}.zip
+done
+

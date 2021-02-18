@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+
+VERSION=`git describe --abbrev=0 --tags`
+
+VERSION_PARTS=(${VERSION//./ })
+VPART1=${VERSION_PARTS[0]}
+VPART2=${VERSION_PARTS[1]}
+VPART3=${VERSION_PARTS[2]}
+
+# Make sure that each part contains a value.
+# This is important for creating the first tag.
+if [ -z "$VPART1" ]; then
+	VPART1=0
+fi
+if [ -z "$VPART2" ]; then
+	VPART1=0
+fi
+
+# Increase the version number using the script's argument.
+case $1 in
+        patch)
+                NEW_PATCH_LEVEL=$((VPART3+1))
+                NEW_MINOR_LEVEL=$VPART2
+                NEW_MAJOR_LEVEL=$VPART1
+                ;;  
+        minor)
+                NEW_PATCH_LEVEL=0
+                NEW_MINOR_LEVEL=$((VPART2+1))
+                NEW_MAJOR_LEVEL=$VPART1
+                ;;  
+        major)
+                NEW_PATCH_LEVEL=0
+                NEW_MINOR_LEVEL=0
+                NEW_MAJOR_LEVEL=$((VPART1+1))
+                ;;  
+        *)
+                echo "You need to specify what kind of release this is. Please add on of the following arguments:"
+                echo "    patch, minor or major"
+                exit -1
+                ;;
+esac
+
+NEW_TAG="$NEW_MAJOR_LEVEL.$NEW_MINOR_LEVEL.$NEW_PATCH_LEVEL"
+echo "Updating $VERSION to $NEW_TAG"
+
+GIT_COMMIT=`git rev-parse HEAD`
+NEEDS_TAG=`git describe --contains $GIT_COMMIT`
+
+if [ -z "$NEEDS_TAG" ]; then
+    echo "Adding new tag: $NEW_TAG."
+    git tag $NEW_TAG
+    git push --tags
+else
+    echo "This commit has already been tagged."
+fi
+
