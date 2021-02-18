@@ -17,7 +17,7 @@ module Formatter =
                                      false
                                      None
                                      (fun () -> 1)
-                                     (Some 3)
+                                     (Rating.create Some (fun _ -> None) 3)
 
     module CommandLine =                                      
         type FailingReplacerException() =
@@ -103,7 +103,7 @@ module Formatter =
             [<InlineData("%title%", "Title")>]
             [<InlineData("%genre%", "Genre")>]
             [<InlineData("%duration%", "1:00")>]
-            [<InlineData("%rating%", "3/5")>]
+            [<InlineData("%rating_string%", "3/5")>]
             [<InlineData("%album%%artist%", "AlbumArtist")>]
             [<InlineData("%album% %artist%", "Album Artist")>]
             [<InlineData("%album% %artist", "Album %artist")>]
