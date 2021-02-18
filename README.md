@@ -1,5 +1,3 @@
-![logo](https://raw.githubusercontent.com/b0wter/fbrary/master/logo.png)
-
 Audio Book Library
 ==================
 This is a simple CLI tool that allows you to manage your audio book library.
