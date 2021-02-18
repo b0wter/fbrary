@@ -9,9 +9,9 @@ Commands
 The application is run in a style similar to `git`. There are several commands to manipulate/list your library.
 All commands require you to specify the library file you want to work on. 
 Use the `--libraryFile` (or `-l`) parameter before specifying any command.
-Currently the following commands are supported.
+Currently, the following commands are supported.
 
-*To create your initial library use the `add` command. It will create a new library file if the files does not already exist!*
+*To create your initial library use the `add` command. It will create a new library file if the file does not already exist!*
 
 Add
 ---
