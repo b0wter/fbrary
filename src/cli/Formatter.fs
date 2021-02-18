@@ -322,8 +322,26 @@ module Formatter =
             line DoubleBorder.vLine SimpleBorder.vLine DoubleBorder.vLine ' ' ' ' textContent
             
         let createFooter (columns: Column list) =
+            let contentWidth = (columns |> List.sumBy (fun c -> c.Width + 3)) - 3
+            let totalRows = if columns.Length > 0 then columns.[0].Cells.Length else 0
             let boxContent = columns |> List.map (fun c -> ("", c.Width))
-            line DoubleBorder.cLowerLeft SimpleDoubleConnector.doubleHTLower DoubleBorder.cLowerRight DoubleBorder.hLine DoubleBorder.hLine boxContent
+            
+            let fullSummary = sprintf "Total: %i" totalRows
+            let shortSummary = sprintf "%i" totalRows
+            let noSummary = "*"
+            
+            let fullWidthContent = [ "", contentWidth ]
+            
+            let summary = if contentWidth >= fullSummary.Length then fullSummary
+                          elif contentWidth >= shortSummary.Length then shortSummary
+                          else noSummary
+                          
+            let textContent = [ summary, contentWidth ]
+            [
+                line SimpleDoubleConnector.doubleVTLeft SimpleBorder.tLower DoubleBorder.tRight SimpleBorder.hLine SimpleBorder.hLine boxContent
+                line DoubleBorder.vLine ' ' DoubleBorder.vLine ' ' ' ' textContent
+                line DoubleBorder.cLowerLeft SimpleDoubleConnector.doubleHTLower DoubleBorder.cLowerRight DoubleBorder.hLine DoubleBorder.hLine fullWidthContent
+            ]
                 
         let createColumns maxColumnWidth (identifiers: string list) (books: Audiobook.Audiobook list) : Column list =
             let createColumn (identifier: string) =
@@ -346,5 +364,5 @@ module Formatter =
                else printfn "The following format identifiers are unknown and will be skipped: %s" (String.Join(", ", validIdentifiers.NonMatching))
             let columns = books |> createColumns maxColumnWidth validIdentifiers.Matching
             let rows = columns |> columnsToRows
-            (columns |> createHeader) @ (rows |> List.map createRow) @ [ columns |> createFooter ]
+            (columns |> createHeader) @ (rows |> List.map createRow) @ (columns |> createFooter)
             
