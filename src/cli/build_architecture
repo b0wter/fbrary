@@ -11,6 +11,7 @@ fi
 dotnet publish -r $1 -p:PublishSingleFile=true -c Release --self-contained true
 
 mkdir -p out
+rm out/*
 LOCATION="bin/Release/net5.0/${1}/publish"
 cd ${LOCATION}
 rm *.dll

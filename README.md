@@ -4,6 +4,8 @@ Audio Book Library
 ==================
 This is a simple CLI tool that allows you to manage your audio book library.
 
+![Example using the table formatter](https://raw.githubusercontent.com/b0wter/fbrary/master/example.png)
+
 Commands
 ========
 The application is run in a style similar to `git`. There are several commands to manipulate/list your library.
