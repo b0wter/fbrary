@@ -6,33 +6,24 @@ REMOTE=https://api.github.com
 
 VERSIONS=(linux-x64 linux-arm64 linux-arm win7-x64 win7-x86 win10-x64 win10-x86 osx-x64) 
 
-case $1 in
-        patch)
-                ;;
-        minor)
-                ;;
-        major)
-                ;;
-        *)
-                echo "You need to specify what kind of release this is. Please add on of the following arguments:"
-                echo "    patch, minor or major"
-                exit -1
-                ;;
-esac
-
 echo "sourcing credentials"
 source credentials
 
-echo "adding new tag"
-source add_tag
+VERSION=`git describe --abbrev=0 --tags`
 
 #
 # Create binaries. Replace this with your own script.
 #
+mkdir -p out
+rm out/*
 for ARCHITECTURE in ${VERSIONS[@]}; do
 	echo "building $ARCHITECTURE"
-	./build_architecture "$ARCHITECTURE"
-	mv "out/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${NEW_TAG}.zip"
+	dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true
+	LOCATION="bin/Release/net5.0/${ARCHITECTURE}/publish"
+	cd ${LOCATION}
+	zip -r "${ARCHITECTURE}" *
+	cd -
+	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}.zip"
 done
 
 #
@@ -41,23 +32,24 @@ done
 # Check wether a release with this tag exists.
 RELEASES=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases | jq '.[].tag_name')
 
-if [[ $RELEASES != *"$NEW_TAG"* ]]; then
+if [[ $RELEASES != *"$VERSION"* ]]; then
 	# Release does NOT exist -> create it!
 	echo "The release does not exist, creating a new one."
-	curl --request POST --header "Authorization: token $GITHUB_ACCESS_KEY" --header "Content-Type: application/json" --data "{\"tag_name\": \"$NEW_TAG\",\"target_commitish\": \"master\"}" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases | jq '.id'
+	curl --request POST --header "Authorization: token $GITHUB_ACCESS_KEY" --header "Content-Type: application/json" --data "{\"tag_name\": \"$VERSION\",\"target_commitish\": \"master\"}" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases | jq '.id'
 else
 	echo "The release exists."
 	exit 1
 fi
 
 # Get the upload_url for the release.
-UPLOAD_URL=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases/tags/$NEW_TAG | jq '.upload_url' | rev | cut -c15- | rev | cut -c2-)
+UPLOAD_URL=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/repos/$OWNER/$PROJECT_NAME/releases/tags/$VERSION | jq '.upload_url' | rev | cut -c15- | rev | cut -c2-)
 
+# Upload the individual files
 for ARCHITECTURE in ${VERSIONS[@]}; do
-	echo "Uploading asset for architecture $ARCHITECTURE (version $NEW_TAG)."
+	echo "Uploading asset for architecture $ARCHITECTURE (version $VERSION)."
 	curl --header "Authorization: token $GITHUB_ACCESS_KEY" \
 	     --header "Content-Type: application/zip" \
-		 --data-binary "@out/${ARCHITECTURE}_${NEW_TAG}.zip" \
-             $UPLOAD_URL?name=${ARCHITECTURE}_${NEW_TAG}.zip
+		 --data-binary "@out/${ARCHITECTURE}_${VERSION}.zip" \
+             $UPLOAD_URL?name=${ARCHITECTURE}_${VERSION}.zip
 done
 
