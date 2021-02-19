@@ -13,7 +13,7 @@ module Arguments =
     type AddArgs =
         | [<MainCommand>] Path of string
         | [<AltCommandLine("-n")>] NonInteractive
-        | [<CustomCommandLine("--sub-directories-as-books")>] SubDirectoriesAsBooks
+        | [<CustomCommandLine("--subdirectories-as-books")>] SubDirectoriesAsBooks
         | [<CustomCommandLine("--files-as-books")>] FilesAsBooks
         interface IArgParserTemplate with
             member s.Usage =
