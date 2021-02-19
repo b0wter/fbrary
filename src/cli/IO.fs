@@ -6,17 +6,25 @@ open System.Linq
 open FsToolkit.ErrorHandling
 
 module IO =
+    
+    let getSubDirectories (path: string) =
+        if not <| Directory.Exists(path) then Error (sprintf "'%s' is not a directory." path)
+        else
+            Directory.GetDirectories(path) |> List.ofArray |> Ok
+        
+    /// Gets a list of files in the given directory and all subdirectories.
+    let rec private filesFromDirectory (recursive: bool) (directory: string) : string list =
+        let files = Directory.GetFiles directory |> List.ofArray
+        if recursive then
+            let folders = Directory.GetDirectories directory |> List.ofArray |> List.collect (filesFromDirectory recursive)
+            files @ folders
+        else
+            files
 
     /// Gets a list of files in the given directory and all subdirectories.
-    let rec private filesFromDirectory (directory: string) : string list =
-        let files = Directory.GetFiles directory |> List.ofArray 
-        let folders = Directory.GetDirectories directory |> List.ofArray |> List.collect filesFromDirectory
-        files @ folders
-
-    /// Gets a list of files in the given directory and all subdirectories.
-    let listFiles (directory: string) =
+    let listFiles (recursive: bool) (directory: string) =
         if not <| Directory.Exists(directory) then Error (sprintf "The directory '%s' does not exist." directory)
-        else Ok (filesFromDirectory directory)
+        else Ok (filesFromDirectory recursive directory)
         
     let filterMp3Files (files: string list) : string list =
         files |> List.filter (fun f ->

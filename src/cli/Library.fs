@@ -35,7 +35,7 @@ module Library =
     let containsId id (l: Library) : bool =
         l.Audiobooks |> List.map Audiobook.id |> List.contains id
     
-    let addBook (a: Audiobook.Audiobook) (l: Library) : Result<Library, string> =
+    let addTo (l: Library) (a: Audiobook.Audiobook) : Result<Library, string> =
         match l.Audiobooks |> List.tryFind (Audiobook.isSameSource a) with
         | Some previousBook ->
             // In case there is a book with the same source we want to reuse the previous id.
@@ -56,6 +56,8 @@ module Library =
                         Audiobooks = a :: l.Audiobooks
                         LastScanned = DateTime.Now
                 } |> Ok
+                
+    let addBook a l = addTo l a
 
     let updateBooks (aa: Audiobook.Audiobook list) (l: Library) : Result<Library, string> =
         let exempted = aa |> List.map Audiobook.id

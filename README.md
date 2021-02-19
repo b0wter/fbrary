@@ -25,7 +25,11 @@ If you want to skip this step you need to pass the `--noninteractive` (`-n`) arg
 ```bash
 ./Fbrary --libraryFile $LIBRARY_FILENAME add -n $PATH
 ```
-If you want to add multiple books at once scroll down to the **hints** section.
+To add multiple books at once there are two options. First, you can use your shell to find the files and add them by invoking fbrary. This will give you the most freedom as you can leverage the power of existing tools. Scroll to the bottom and check the **hots** section.
+Second, there are two arguments that take care of the three most common tasks:
+ * `--subdirectories-as-books` will only read the first level of subdirectories and add each subdirectory as an independent book. Each subdirecry will be scanned recursively.
+ * `--files-as-books` will only read files from the given path and ignore all subdirectories. Each file is added as an independent audio book.
+ * You can combine both arguments and both operations will be executed. Each subdirectory is added as an independent book (even if there are multiple mp3/ogg inside a folder) and all files in the root folder are added as independent books.
 
 Remove
 ------
@@ -87,7 +91,7 @@ is the same as the following two:
 --table "%artist%%album%"
 --table "%artist% (Artist) | %album% (Album)"
 ```
-Columns are limited to 64 characters (for the content additional characters are used as padding and border) by default. Use the `--maxcolwidth` (or `-w`) switch to override the value. Any value less than four will be changed to four.
+Columns are limited to 64 characters (for the content additional characters are used as padding and border) by default. Use the `--max-col-width` (or `-w`) switch to override the value. Any value less than four will be changed to four.
 
 Update
 ------

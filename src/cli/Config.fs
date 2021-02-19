@@ -7,10 +7,14 @@ module Config =
     type AddConfig = {
         Path: string
         NonInteractive: bool
+        SubDirectoriesAsBooks: bool
+        FilesAsBooks: bool
     }
     let private emptyAddConfig = {
         Path = System.String.Empty
         NonInteractive = false
+        SubDirectoriesAsBooks = false
+        FilesAsBooks = false
     }
     
     type ListConfig = {
@@ -107,6 +111,8 @@ module Config =
         match a with
         | Path p -> { config with Path = p }
         | NonInteractive -> { config with NonInteractive = true }
+        | SubDirectoriesAsBooks -> { config with SubDirectoriesAsBooks = true }
+        | FilesAsBooks -> { config with FilesAsBooks = true }
         
     let applyFilesArg (config: FilesConfig) (f: FilesArgs) : FilesConfig =
         match f with

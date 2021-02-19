@@ -38,15 +38,45 @@ module Program =
         
         step [] String.Empty parts
         
-    let addDirectory (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) = 
+    let addDirectory (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) =
+        let getRegular path =
+            IO.getIfDirectory path |> Result.bind (IO.listFiles true) |> Result.map List.singleton
+            
+        let getFilesAsBooks path =
+            IO.getIfDirectory path |> Result.bind (IO.listFiles false) |> Result.map(List.map List.singleton)
+            
+        let getSubFoldersAsBooks path =
+            result {
+                let! directory = IO.getIfDirectory path
+                let! subdirectories = directory |> IO.getSubDirectories
+                return! subdirectories |> List.map (IO.listFiles true) |> List.sequenceResultM
+            }
+            
+        let getFilesAsBookAndSubFoldersAsBooks path =
+            result {
+                let! subfolderBooks = getSubFoldersAsBooks path
+                let! filesBooks = getFilesAsBooks path
+                return subfolderBooks @ filesBooks
+            }
+            
+        let createBook (files: string list) =
+            result {
+                let! metadata = files |> List.map TagLib.readMetaData |> List.sequenceResultM
+                match metadata with
+                | [ single ] ->
+                    return Audiobook.createFromSingle (not <| addConfig.NonInteractive) idGenerator single
+                | many ->
+                    return! many |> Audiobook.createFromMultiple (not <| addConfig.NonInteractive) idGenerator 
+            }
+        
         result {
-            let! directory = IO.getIfDirectory path
-            let! files = directory |> IO.listFiles
-            do printfn "Found %i files" files.Length
-            let mp3s = files |> IO.filterMp3Files
-            do printfn "Of these %i have a mp3 extension." mp3s.Length
-            let! metadata = mp3s |> List.map TagLib.readMetaData |> b0wter.FSharp.Result.all
-            return! Audiobook.createFromMultiple (not <| addConfig.NonInteractive) idGenerator metadata
+            let! files = match addConfig.FilesAsBooks, addConfig.SubDirectoriesAsBooks with
+                         | false, false -> getRegular path
+                         | true, false -> getFilesAsBooks path
+                         | false, true -> getSubFoldersAsBooks path
+                         | true, true -> getFilesAsBookAndSubFoldersAsBooks path
+            let files = files |> List.map (IO.filterMp3Files) |> List.skipEmpty
+            return! files |> List.map createBook |> List.sequenceResultM
         }
         
     let addFile interactive (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
@@ -56,9 +86,12 @@ module Program =
             return Audiobook.createFromSingle interactive idGenerator metadata
         }
         
-    let addPath (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook, string> =
+    let addPath (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook list, string> =
         if File.Exists(path) then
-            addFile (not <| addConfig.NonInteractive) path idGenerator
+            if addConfig.SubDirectoriesAsBooks then printfn "The option to add subdirectories as books is ignored if the given path points to a file."
+            elif addConfig.FilesAsBooks then printfn "The option to add files as independent books is ignored if the given path points to a file."
+            else ()
+            addFile (not <| addConfig.NonInteractive) path idGenerator |> Result.map List.singleton
         elif Directory.Exists(path) then
             addDirectory addConfig path idGenerator
         else
@@ -104,8 +137,12 @@ module Program =
             
     let add (library: Library.Library) (idGenerator: (unit -> int)) (addConfig: Config.AddConfig) (config: Config.Config) : Result<int, string> =
         result {
-            let! audiobook = addPath addConfig addConfig.Path idGenerator
-            let! updatedLibrary = library |> Library.addBook audiobook
+            let! audiobooks = addPath addConfig addConfig.Path idGenerator
+            
+            let folder = fun (lib: Result<Library.Library, string>) (book: Audiobook.Audiobook) ->
+                lib |> Result.bind (Library.addBook book)
+            let! updatedLibrary = audiobooks |> List.fold folder (Ok library)
+            
             do! updatedLibrary |> Library.serialize |> IO.writeTextToFile config.LibraryFile
             return 0
         }
@@ -268,7 +305,7 @@ module Program =
         result {
             let! library = Library.fromFile libraryFile
             let allLibraryFiles = library.Audiobooks |> List.collect Audiobook.allFiles
-            let! allPathFiles = config.Path |> IO.listFiles |> Result.map IO.filterMp3Files
+            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."
@@ -326,20 +363,6 @@ module Program =
                 printfn "%s" (parser.PrintUsage())
                 return 1
         }
-        
-        let dummy = Audiobook.createWith (Audiobook.SingleFile "non-existing-file.mp3")
-                                 (Some "Artist")
-                                 (Some "Album")
-                                 (Some "Album Artist")
-                                 (Some "Title")
-                                 (Some "Genre")
-                                 (TimeSpan(1, 0, 0))
-                                 false
-                                 None
-                                 (fun () -> 1)
-                                 (Rating.create Some (fun _ -> None) 3)
-        let dummyLib = { Library.empty with Audiobooks = [ dummy ] }
-        let s = dummyLib |> Library.serialize
         
         match r with
         | Ok statusCode -> statusCode

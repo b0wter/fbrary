@@ -31,4 +31,17 @@ module Utilities =
                 | head :: tail ->
                     step (head :: nonMatchingAccumulator) matchingAccumulator tail
             step [] [] items
-                
+            
+        let foldResult (f: 'State -> 'T -> Result<'State, 'Error>) (initialValue: 'State) (items: 'T list) =
+            let rec step (state: 'State) (remaining: 'T list) : Result<'State, 'Error> =
+                match remaining with
+                | [] -> Ok state
+                | head :: tail ->
+                    match f state head with
+                    | Ok o ->
+                        step o tail
+                    | Error e -> Error e
+            step initialValue items
+
+        let skipEmpty (lists: 'a list list) =
+            lists |> List.filter (not << List.isEmpty)

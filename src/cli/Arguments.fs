@@ -13,17 +13,21 @@ module Arguments =
     type AddArgs =
         | [<MainCommand>] Path of string
         | [<AltCommandLine("-n")>] NonInteractive
+        | [<CustomCommandLine("--sub-directories-as-books")>] SubDirectoriesAsBooks
+        | [<CustomCommandLine("--files-as-books")>] FilesAsBooks
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
                 | Path _ -> "The path of the file/directory to add."
                 | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
+                | SubDirectoriesAsBooks -> "Each subfolder inside the given path is interpreted as an independent audio book."
+                | FilesAsBooks -> "Each media file in the given path is interpreted as an independent audio book."
         
     type ListArgs =
         | [<MainCommand>] Filter of string
         | [<AltCommandLine("-f")>] Format of string
         | [<AltCommandLine("-t")>] Table of string
-        | [<CustomCommandLine("--maxcolwidth"); AltCommandLine("-w")>] MaxTableColumnWidth of int
+        | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w")>] MaxTableColumnWidth of int
         | Ids of int list
         | Unrated
         | NotCompleted
