@@ -312,7 +312,6 @@ module Formatter =
             ]
                 
         let createRow (row: Row)=
-            //let boxContent = row.Cells |> List.map (fun r -> ("", r.Width))
             let cutText (maxLength: int) (s: string) : string =
                 if s.Length > maxLength then
                     s.Substring(0 ,maxLength - 3) + "..."
@@ -362,7 +361,10 @@ module Formatter =
             let validIdentifiers = columnIdentifiers |> Utilities.List.splitBy (fun identifier -> allFormantPlaceholders |> List.contains identifier)
             do if validIdentifiers.NonMatching.IsEmpty then ()
                else printfn "The following format identifiers are unknown and will be skipped: %s" (String.Join(", ", validIdentifiers.NonMatching))
-            let columns = books |> createColumns maxColumnWidth validIdentifiers.Matching
-            let rows = columns |> columnsToRows
-            (columns |> createHeader) @ (rows |> List.map createRow) @ (columns |> createFooter)
+            
+            if validIdentifiers.Matching.IsEmpty then []
+            else
+                let columns = books |> createColumns maxColumnWidth validIdentifiers.Matching
+                let rows = columns |> columnsToRows
+                (columns |> createHeader) @ (rows |> List.map createRow) @ (columns |> createFooter)
             
