@@ -76,6 +76,17 @@ module Config =
         Path: string
     }
     
+    type WriteConfig = {
+        Fields: string list
+        DryRun: bool
+        NonInteractive: bool
+    }
+    let private emptyWriteConfig = {
+        Fields = []
+        DryRun = false
+        NonInteractive = false
+    }
+    
     type Command
         = Add of AddConfig
         | List of ListConfig
@@ -88,6 +99,7 @@ module Config =
         | Unmatched of UnmatchedConfig
         | Files of FilesConfig
         | Uninitialized
+        | Write of WriteConfig
     
     type Config = {
         Command: Command
@@ -110,7 +122,7 @@ module Config =
     let applyAddArg (config: AddConfig) (a: AddArgs) : AddConfig =
         match a with
         | Path p -> { config with Path = p }
-        | NonInteractive -> { config with NonInteractive = true }
+        | AddArgs.NonInteractive -> { config with NonInteractive = true }
         | SubDirectoriesAsBooks -> { config with SubDirectoriesAsBooks = true }
         | FilesAsBooks -> { config with FilesAsBooks = true }
         
@@ -118,6 +130,12 @@ module Config =
         match f with
         | Id id -> { config with Id = id }
         | Separator s -> { config with Separator = s }
+        
+    let applyWriteArg (config: WriteConfig) (w: WriteArgs) : WriteConfig =
+        match w with
+        | Fields fields -> { config with Fields = fields }
+        | DryRun -> { config with DryRun = true }
+        | NonInteractive -> { config with NonInteractive = true }
     
     // Define functions that take arguments and apply them to a config.
     // Use this to fold the configuration from the arguments.
@@ -143,6 +161,7 @@ module Config =
                             | NotCompleted _
                             | Files _
                             | Aborted _
+                            | Write _
                             | Completed _ -> emptyAddConfig
             let updatedAddConfig = add.GetAllResults() |> List.fold applyAddArg addConfig
             { config with Command = Add updatedAddConfig }
@@ -165,6 +184,7 @@ module Config =
                               | Unmatched _
                               | NotCompleted _
                               | Aborted _
+                              | Write _
                               | Completed _ -> emptyFilesConfig
                               | Files f -> f
             let updatedFilesConfig = files.GetAllResults() |> List.fold applyFilesArg filesConfig
@@ -183,7 +203,25 @@ module Config =
                              | NotCompleted _
                              | Files _
                              | Aborted _
+                             | Write _
                              | Completed _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             { config with Command = List updatedListConfig }
+        | MainArgs.Write w ->
+            let writeConfig = match config.Command with
+                              | List _
+                              | Add _
+                              | Remove _
+                              | Update _
+                              | Uninitialized
+                              | Rate _
+                              | Unmatched _
+                              | NotCompleted _
+                              | Files _
+                              | Aborted _
+                              | Completed _ -> emptyWriteConfig
+                              | Write w -> w
+            let updatedWriteConfig = w.GetAllResults() |> List.fold applyWriteArg writeConfig
+            { config with Command = Write updatedWriteConfig }
+            
                    

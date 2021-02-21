@@ -56,6 +56,17 @@ module Arguments =
                 match s with
                 | Id _ -> "Id of the audiobook whose files you want to list. Use the `list` command to find ids."
                 | Separator _ -> "Define the separator for listing multiple files. Defaults to 'newline'. Possible values are: 'space' and 'newline'."
+
+    type WriteArgs =
+        | [<MainCommand>] Fields of string list
+        | [<AltCommandLine("-d")>] DryRun
+        | [<AltCommandLine("-n")>] NonInteractive
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Fields _ -> "Name of the fields you want to write to the files. Uses the same format as the `list` command. If you do not supply an argument all fields are written."
+                | DryRun -> "Do not modify files just print the changes."
+                | NonInteractive -> "Skip all user interaction."
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
@@ -70,6 +81,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Aborted of int list
         | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
+        | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -85,5 +97,6 @@ module Arguments =
                 | Aborted _ -> "Mark the book with the given id as aborted meaning you stopped listening to it."
                 | Files _ -> "List all files of an audio book. Use the `list` command to find book ids."
                 | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
+                | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
                 
 

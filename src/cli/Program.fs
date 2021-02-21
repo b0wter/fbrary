@@ -326,6 +326,20 @@ module Program =
             return files |> b0wter.FSharp.String.join separator
         }
         
+    let write libraryFile (writeConfig: Config.WriteConfig) =
+        let bookToMetadata (book: Audiobook.Audiobook) : Metadata.Metadata list =
+            let files = book |> Audiobook.allFiles
+            files |> List.map (fun file ->
+                    Metadata.create file book.Artist book.AlbumArtist book.Album book.Title book.Genre book.Duration book.HasPicture book.Comment
+                )
+            
+        result {
+            let! library = Library.fromFile libraryFile
+            let metadata = library.Audiobooks |> List.collect bookToMetadata
+            do! metadata |> List.map (TagLib.writeMetaData writeConfig) |> List.sequenceResultM |> Result.map ignore
+            return 0
+        }
+        
     [<EntryPoint>]
     let main argv =
         let r = result {
@@ -362,6 +376,8 @@ module Program =
             | Config.Uninitialized ->
                 printfn "%s" (parser.PrintUsage())
                 return 1
+            | Config.Write writeConfig ->
+                return! write config.LibraryFile writeConfig
         }
         
         match r with
