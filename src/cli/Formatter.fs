@@ -195,7 +195,7 @@ module Formatter =
             let tLeft = '├'
             let rRight = '┤'
             
-        module DoubleBorder =
+        module FatBorder =
             let hLine = '━'
             let vLine = '┃'
             let cUpperLeft = '┏'
@@ -222,7 +222,7 @@ module Formatter =
             let tLeft = '╠'
             let tRight = '╣'
             
-        module Border = 
+        module HighlightBorder = 
             let forPlatform (a, b) =
                 if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then b else a
             let hLine = ('━', '═') |> forPlatform 
@@ -237,28 +237,28 @@ module Formatter =
             let tLeft = ('┣', '╠') |> forPlatform 
             let tRight = ('┫', '╣') |> forPlatform 
             
-        module SimpleDoubleConnector =
+        module FatToSimpleConnectors =
             let doubleVTLeft = '┠'
             let doubleVTRight = '┨'
             let doubleHTUpper = '┯'
             let doubleHTLower = '┷'
             let cross = '╇'
             
-        module SimpleTwinConnector =
+        module TwinToSimpleConnectors =
             let doubleVTLeft = '╟'
             let doubleVTRight = '╢'
             let doubleHTUpper = '╤'
             let doubleHTLower = '╧'
             let cross = '╬'
             
-        module SpecialConnector =
+        module HighlightConnectors =
             let forPlatform (a, b) =
                 if RuntimeInformation.IsOSPlatform(OSPlatform.Windows) then b else a
-            let doubleVTLeft = (SimpleDoubleConnector.doubleVTLeft, SimpleTwinConnector.doubleVTLeft) |> forPlatform
-            let doubleVTRight = (SimpleDoubleConnector.doubleVTRight, SimpleTwinConnector.doubleVTRight) |> forPlatform
-            let doubleHTLower = (SimpleDoubleConnector.doubleHTLower, SimpleTwinConnector.doubleHTLower) |> forPlatform
-            let doubleHTUpper = (SimpleDoubleConnector.doubleHTUpper, SimpleTwinConnector.doubleHTUpper) |> forPlatform
-            let cross = (SimpleDoubleConnector.cross, SimpleTwinConnector.cross) |> forPlatform
+            let doubleVTLeft = (FatToSimpleConnectors.doubleVTLeft, TwinToSimpleConnectors.doubleVTLeft) |> forPlatform
+            let doubleVTRight = (FatToSimpleConnectors.doubleVTRight, TwinToSimpleConnectors.doubleVTRight) |> forPlatform
+            let doubleHTLower = (FatToSimpleConnectors.doubleHTLower, TwinToSimpleConnectors.doubleHTLower) |> forPlatform
+            let doubleHTUpper = (FatToSimpleConnectors.doubleHTUpper, TwinToSimpleConnectors.doubleHTUpper) |> forPlatform
+            let cross = (FatToSimpleConnectors.cross, TwinToSimpleConnectors.cross) |> forPlatform
             
         let tableHeaders = [
             (artist, "Artist")
@@ -303,7 +303,6 @@ module Formatter =
                     yield { Index = i; Cells = array |> selectRow i |> List.ofArray }
             } |> List.ofSeq
                 
-                
         let line leftBorder columnBorder rightBorder borderPaddingCharacter contentPaddingCharacter (cells: (string * int) list) =
             let rec fold (accumulator: string) (remaining: (string * int) list) (isFirst: bool) =
                 match remaining with
@@ -328,9 +327,9 @@ module Formatter =
             let boxContent = columns |> List.map (fun c -> ("", c.Width))
             let textContent = columns |> List.map (fun c -> (c.Header, c.Width))
             [
-                line Border.cUpperLeft SpecialConnector.doubleHTUpper Border.cUpperRight Border.hLine Border.hLine boxContent
-                line Border.vLine SimpleBorder.vLine Border.vLine ' ' ' ' textContent
-                line SpecialConnector.doubleVTLeft SimpleBorder.center SpecialConnector.doubleVTRight SimpleBorder.hLine SimpleBorder.hLine boxContent
+                line HighlightBorder.cUpperLeft HighlightConnectors.doubleHTUpper HighlightBorder.cUpperRight HighlightBorder.hLine HighlightBorder.hLine boxContent
+                line HighlightBorder.vLine SimpleBorder.vLine HighlightBorder.vLine ' ' ' ' textContent
+                line HighlightConnectors.doubleVTLeft SimpleBorder.center HighlightConnectors.doubleVTRight SimpleBorder.hLine SimpleBorder.hLine boxContent
             ]
                 
         let createRow (row: Row)=
@@ -340,7 +339,7 @@ module Formatter =
                 else
                     s
             let textContent = row.Cells |> List.map (fun r -> (r.Content |> (cutText r.Width), r.Width))
-            line Border.vLine SimpleBorder.vLine Border.vLine ' ' ' ' textContent
+            line HighlightBorder.vLine SimpleBorder.vLine HighlightBorder.vLine ' ' ' ' textContent
             
         let createFooter (columns: Column list) =
             let contentWidth = (columns |> List.sumBy (fun c -> c.Width + 3)) - 3
@@ -359,9 +358,9 @@ module Formatter =
                           
             let textContent = [ summary, contentWidth ]
             [
-                line SpecialConnector.doubleVTLeft SimpleBorder.tLower SpecialConnector.doubleVTRight SimpleBorder.hLine SimpleBorder.hLine boxContent
-                line Border.vLine ' ' Border.vLine ' ' ' ' textContent
-                line Border.cLowerLeft SpecialConnector.doubleHTLower Border.cLowerRight Border.hLine Border.hLine fullWidthContent
+                line HighlightConnectors.doubleVTLeft SimpleBorder.tLower HighlightConnectors.doubleVTRight SimpleBorder.hLine SimpleBorder.hLine boxContent
+                line HighlightBorder.vLine ' ' HighlightBorder.vLine ' ' ' ' textContent
+                line HighlightBorder.cLowerLeft HighlightConnectors.doubleHTLower HighlightBorder.cLowerRight HighlightBorder.hLine HighlightBorder.hLine fullWidthContent
             ]
                 
         let createColumns maxColumnWidth (identifiers: string list) (books: Audiobook.Audiobook list) : Column list =

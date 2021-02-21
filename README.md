@@ -65,7 +65,7 @@ You can freely combine the different arguments:
 ### Format
 Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
 ```
-%artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating%, %comment%, %genre%
+%artist%, %album%, %title, %albumartist%, %id%, %duration%, %rating_string%, %rating_dots%, %comment%, %genre%, %completed_string%, %completed_symbols%
 ```
 If an audio book does not have a proper value for the given placeholder (e.g. `%title%`) it is replaced by `<no title set>`. You can wrap a single or multiple placeholders in `??` to supress the `<no $PLACEHOLDER set>` text. E.g.:
 ```
