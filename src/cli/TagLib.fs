@@ -3,6 +3,7 @@ namespace b0wter.Fbrary
 open Metadata
 open System
 open System.IO
+open b0wter.FSharp
     
 module TagLib =
     let private artistPlaceholder = "artist"
@@ -56,23 +57,26 @@ module TagLib =
     let private confContains placeholder (config: Config.WriteConfig) =
         config.Fields |> List.contains placeholder
         
-    let private setIf name (isActive: Config.WriteConfig -> bool) (set: 'a -> TagLib.File -> unit) (value: 'a option)
+    let private setIf name fieldName (empty: 'a) (isActive: Config.WriteConfig -> bool) (set: 'a -> TagLib.File -> unit)
+                           (get: TagLib.File -> string) (value: 'a option)
                            (config: Config.WriteConfig) (file: TagLib.File) =
         if config |> isActive then
             do match value with
                | Some v ->
-                   do printfn "Updating value for field '%s'." name
+                   do printfn "Updating value for field '%s' from '%s' to '%s'." name (get file) (value |> Option.map string |> Option.getOrElse "<not set>")
                    set v file
-               | None -> ()
+               | None ->
+                   do printfn "Setting empty value for '%s', was '%s' previously.." name (get file)
+                   set empty file
             file
         else file
         
-    let setArtist = setIf "Arrist" (confContains artistPlaceholder) (fun v t -> t.Tag.Performers <- [| v |])
-    let setAlbum = setIf "Album" (confContains albumPlaceholder) (fun v t -> t.Tag.Album <- v)
-    let setAlbumArtist = setIf "Album Artist" (confContains albumArtistPlaceholder) (fun v t -> t.Tag.AlbumArtists <- [| v |])
-    let setGenre = setIf "Genre" (confContains genrePlaceholder) (fun v t -> t.Tag.Genres <- [| v |])
-    let setTitle = setIf "Title" (confContains titlePlaceholder) (fun v t -> t.Tag.Title <- v)
-    let setComment = setIf "Comment" (confContains commentPlaceholder) (fun v t -> t.Tag.Comment <- v)
+    let setArtist = setIf "Arrist" "TPE1" String.Empty (confContains artistPlaceholder) (fun v t -> t.Tag.Performers <- [| v |]) (fun t -> String.Join(", ", t.Tag.Performers))
+    let setAlbum = setIf "Album" "TALB" String.Empty (confContains albumPlaceholder) (fun v t -> t.Tag.Album <- v) (fun t -> t.Tag.Album)
+    let setAlbumArtist = setIf "Album Artist" "TPE2" String.Empty (confContains albumArtistPlaceholder) (fun v t -> t.Tag.AlbumArtists <- [| v |]) (fun t -> String.Join(", ", t.Tag.AlbumArtists))
+    let setGenre = setIf "Genre" "TCON" String.Empty (confContains genrePlaceholder) (fun v t -> t.Tag.Genres <- [| v |]) (fun t -> String.Join(", ", t.Tag.Genres))
+    let setTitle = setIf "Title" "TIT2" String.Empty (confContains titlePlaceholder) (fun v t -> t.Tag.Title <- v) (fun t -> t.Tag.Title)
+    let setComment = setIf "Comment" "COMM" String.Empty (confContains commentPlaceholder) (fun v t -> t.Tag.Comment <- v) (fun t -> t.Tag.Comment)
         
     let writeMetaData (config: Config.WriteConfig) (m: Metadata.Metadata) =
         let config = if config.Fields.IsEmpty then { config with Fields = allPlaceholders } else config
