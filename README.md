@@ -146,6 +146,25 @@ Files
 ./Fbrary --libraryFile $LIBRARY_FILENAME files $ID
 ./Fbrary --libraryFile $LIBRARY_FILENAME files $ID --
 ```
+List all files of the given audio book.
+Use the `list` command to find `$ID`s.
+
+Write
+-----
+```bash
+./Fbrary --libraryFile $LIBRARY_FILENAME write
+./Fbrary --libraryFile $LIBRARY_FILENAME write artist album
+```
+Writes the meta data in your library back to the files of the audio book. You can specify which fields you want to be written to the file by appending their names. See the example above. Allowed values are:
+```
+artist
+album
+albumArtist
+title
+genre
+comment
+```
+To preview the changed add the `-d` (dry run) parameter.
 
 Hints
 =====
