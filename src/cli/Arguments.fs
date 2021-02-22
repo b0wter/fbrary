@@ -70,7 +70,7 @@ module Arguments =
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
-        | [<AltCommandLine("-l"); Mandatory; First>] Library of string
+        | [<AltCommandLine("-l"); Mandatory; First; AltCommandLine("--library-file")>] Library of string
         | [<CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
         | [<CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
         | [<CliPrefix(CliPrefix.None)>] Remove of int

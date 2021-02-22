@@ -8,7 +8,7 @@ Commands
 ========
 The application is run in a style similar to `git`. There are several commands to manipulate/list your library.
 All commands require you to specify the library file you want to work on. 
-Use the `--libraryFile` (or `-l`) parameter before specifying any command.
+Use the `--library-file` (or `-l`) parameter before specifying any command.
 Currently, the following commands are supported.
 
 *To create your initial library use the `add` command. It will create a new library file if the file does not already exist!*
@@ -16,14 +16,14 @@ Currently, the following commands are supported.
 Add
 ---
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME add $PATH
+./Fbrary -l $LIBRARY_FILENAME add $PATH
 ```
 Add a file or directory to the library.
 If you specify a directory it will be recursively scanned for mp3 files and added as a single audio book.
 After reading all the files you will be asked to confirm the meta data. 
 If you want to skip this step you need to pass the `--noninteractive` (`-n`) argument:
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME add -n $PATH
+./Fbrary -l $LIBRARY_FILENAME add -n $PATH
 ```
 To add multiple books at once there are two options. First, you can use your shell to find the files and add them by invoking fbrary. This will give you the most freedom as you can leverage the power of existing tools. Scroll to the bottom and check the **hots** section.
 Second, there are two arguments that take care of the three most common tasks:
@@ -34,14 +34,14 @@ Second, there are two arguments that take care of the three most common tasks:
 Remove
 ------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME remove $ID
+./Fbrary -l $LIBRARY_FILENAME remove $ID
 ```
 Removes an audio book from the library. Use the `list` command to find book ids.
 
 List
 ----
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME list $PATTERN
+./Fbrary -l $LIBRARY_FILENAME list $PATTERN
 ```
 Lists all entries in the library that contain the `$PATTERN` in either their _Artist_, _Album_, _AlbumArtist_ or _Title_ field.
 The `$PATTERN` is an optional parameter. If it is skipped all books are listed.
@@ -56,10 +56,10 @@ There are the following additional parameters:
 
 You can freely combine the different arguments:
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME list --unrated --completed
-./Fbrary --libraryFile $LIBRARY_FILENAME list "Story"
-./Fbrary --libraryFile $LIBRARY_FILENAME list --notcompleted
-./Fbrary --libraryFile $LIBRARY_FILENAME list "Story" --completed
+./Fbrary -l $LIBRARY_FILENAME list --unrated --completed
+./Fbrary -l $LIBRARY_FILENAME list "Story"
+./Fbrary -l $LIBRARY_FILENAME list --notcompleted
+./Fbrary -l $LIBRARY_FILENAME list "Story" --completed
 ```
 
 ### Format
@@ -96,7 +96,7 @@ Columns are limited to 64 characters (for the content additional characters are 
 Update
 ------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME update $ID
+./Fbrary -l $LIBRARY_FILENAME update $ID
 ```
 Use the update command to edit the meta data for an existing library entry.
 Use the `list` command to find `$ID`s.
@@ -104,7 +104,7 @@ Use the `list` command to find `$ID`s.
 Rate
 ----
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME rate $ID
+./Fbrary -l $LIBRARY_FILENAME rate $ID
 ```
 Set a rating for the given audio book.
 Use the `list` command to find `$ID`s.
@@ -112,7 +112,7 @@ Use the `list` command to find `$ID`s.
 Completed
 ---------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME completed $ID1 $ID2 $..
+./Fbrary -l $LIBRARY_FILENAME completed $ID1 $ID2 $..
 ```
 Mark one or more audio books as completed.
 Use the `list` command to find `$ID`s.
@@ -120,7 +120,7 @@ Use the `list` command to find `$ID`s.
 NotCompleted
 ------------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME notcompleted $ID1 $ID2 $..
+./Fbrary -l $LIBRARY_FILENAME notcompleted $ID1 $ID2 $..
 ```
 Mark one or more audio books as not completed.
 Use the `list` command to find `$ID`s.
@@ -128,7 +128,7 @@ Use the `list` command to find `$ID`s.
 Aborted
 -------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME aborted $ID1 $ID2 $..
+./Fbrary -l $LIBRARY_FILENAME aborted $ID1 $ID2 $..
 ```
 Mark one or more audio books as aborted. Use this to mark books that you no longer want to listen to.
 Use the `list` command to find `$ID`s.
@@ -136,15 +136,15 @@ Use the `list` command to find `$ID`s.
 Unmatched
 -------
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME unmatched $PATH
+./Fbrary -l $LIBRARY_FILENAME unmatched $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
 
 Files
 -----
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME files $ID
-./Fbrary --libraryFile $LIBRARY_FILENAME files $ID --
+./Fbrary -l $LIBRARY_FILENAME files $ID
+./Fbrary -l $LIBRARY_FILENAME files $ID --
 ```
 List all files of the given audio book.
 Use the `list` command to find `$ID`s.
@@ -152,8 +152,8 @@ Use the `list` command to find `$ID`s.
 Write
 -----
 ```bash
-./Fbrary --libraryFile $LIBRARY_FILENAME write
-./Fbrary --libraryFile $LIBRARY_FILENAME write artist album
+./Fbrary -l $LIBRARY_FILENAME write
+./Fbrary -l $LIBRARY_FILENAME write artist album
 ```
 Writes the meta data in your library back to the files of the audio book. You can specify which fields you want to be written to the file by appending their names. See the example above. Allowed values are:
 ```
@@ -164,7 +164,7 @@ title
 genre
 comment
 ```
-To preview the changed add the `-d` (dry run) parameter.
+To preview the changes add the `-d` (dry run) parameter.
 
 Hints
 =====
