@@ -304,8 +304,17 @@ module Program =
     let unmatched libraryFile (config: Config.UnmatchedConfig) =
         result {
             let! library = Library.fromFile libraryFile
-            let allLibraryFiles = library.Audiobooks |> List.collect Audiobook.allFiles
-            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files
+            let libraryFileDirectory = Path.GetDirectoryName(Path.GetFullPath(libraryFile))
+            // The `GetFullPath` is required because `Path.Join` may result in paths like this:
+            //   /foo/bar/./my_file.mp3
+            // which is the same as
+            //  /foo/bar/my_file.mp3
+            // but it's a string comparison so no logic is applied.
+            let allLibraryFiles = library.Audiobooks
+                                  |> List.collect Audiobook.allFiles
+                                  |> List.map (fun f -> Path.GetFullPath(Path.Join(libraryFileDirectory, f)))
+            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map Path.GetFullPath)
+            do allLibraryFiles |> List.iter Console.Error.WriteLine
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."

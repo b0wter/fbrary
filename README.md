@@ -134,11 +134,24 @@ Mark one or more audio books as aborted. Use this to mark books that you no long
 Use the `list` command to find `$ID`s.
 
 Unmatched
--------
+---------
 ```bash
 ./Fbrary -l $LIBRARY_FILENAME unmatched $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
+Path comparison is done using absolute paths. Each file in the library is joined with the directiory of the `$LIBRARY_FILENAME`.
+Given the library file `library.json` in the folder `/home/user/audiobooks` and the following entry in the file:
+```
+{
+ "Id": 1,
+  "Source": {
+    "SingleFile": "./foo.mp3"
+  },
+  ...
+}
+```
+will result in the path `/home/user/audiobooks/foo.mp3`.
+The path argument given to the tool will also be expanded to an absolute path.
 
 Files
 -----
