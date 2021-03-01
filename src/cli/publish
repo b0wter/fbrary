@@ -21,6 +21,7 @@ for ARCHITECTURE in ${VERSIONS[@]}; do
 	dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true
 	LOCATION="bin/Release/net5.0/${ARCHITECTURE}/publish"
 	cd ${LOCATION}
+	rename 'y/A-Z/a-z/' Fbrary*
 	zip -r "${ARCHITECTURE}" *
 	cd -
 	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}.zip"
