@@ -314,7 +314,7 @@ module Program =
                                   |> List.collect Audiobook.allFiles
                                   |> List.map (fun f -> Path.GetFullPath(Path.Join(libraryFileDirectory, f)))
             let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map Path.GetFullPath)
-            do allLibraryFiles |> List.iter Console.Error.WriteLine
+            
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."
