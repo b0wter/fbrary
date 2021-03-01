@@ -16,14 +16,14 @@ Currently, the following commands are supported.
 Add
 ---
 ```bash
-./Fbrary -l $LIBRARY_FILENAME add $PATH
+./fbrary -l $LIBRARY_FILENAME add $PATH
 ```
 Add a file or directory to the library.
 If you specify a directory it will be recursively scanned for mp3 files and added as a single audio book.
 After reading all the files you will be asked to confirm the meta data. 
 If you want to skip this step you need to pass the `--noninteractive` (`-n`) argument:
 ```bash
-./Fbrary -l $LIBRARY_FILENAME add -n $PATH
+./fbrary -l $LIBRARY_FILENAME add -n $PATH
 ```
 To add multiple books at once there are two options. First, you can use your shell to find the files and add them by invoking fbrary. This will give you the most freedom as you can leverage the power of existing tools. Scroll to the bottom and check the **hots** section.
 Second, there are two arguments that take care of the three most common tasks:
@@ -34,14 +34,14 @@ Second, there are two arguments that take care of the three most common tasks:
 Remove
 ------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME remove $ID
+./fbrary -l $LIBRARY_FILENAME remove $ID
 ```
 Removes an audio book from the library. Use the `list` command to find book ids.
 
 List
 ----
 ```bash
-./Fbrary -l $LIBRARY_FILENAME list $PATTERN
+./fbrary -l $LIBRARY_FILENAME list $PATTERN
 ```
 Lists all entries in the library that contain the `$PATTERN` in either their _Artist_, _Album_, _AlbumArtist_ or _Title_ field.
 The `$PATTERN` is an optional parameter. If it is skipped all books are listed.
@@ -56,10 +56,10 @@ There are the following additional parameters:
 
 You can freely combine the different arguments:
 ```bash
-./Fbrary -l $LIBRARY_FILENAME list --unrated --completed
-./Fbrary -l $LIBRARY_FILENAME list "Story"
-./Fbrary -l $LIBRARY_FILENAME list --notcompleted
-./Fbrary -l $LIBRARY_FILENAME list "Story" --completed
+./fbrary -l $LIBRARY_FILENAME list --unrated --completed
+./fbrary -l $LIBRARY_FILENAME list "Story"
+./fbrary -l $LIBRARY_FILENAME list --notcompleted
+./fbrary -l $LIBRARY_FILENAME list "Story" --completed
 ```
 
 ### Format
@@ -96,7 +96,7 @@ Columns are limited to 64 characters (for the content additional characters are 
 Update
 ------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME update $ID
+./fbrary -l $LIBRARY_FILENAME update $ID
 ```
 Use the update command to edit the meta data for an existing library entry.
 Use the `list` command to find `$ID`s.
@@ -104,7 +104,7 @@ Use the `list` command to find `$ID`s.
 Rate
 ----
 ```bash
-./Fbrary -l $LIBRARY_FILENAME rate $ID
+./fbrary -l $LIBRARY_FILENAME rate $ID
 ```
 Set a rating for the given audio book.
 Use the `list` command to find `$ID`s.
@@ -112,7 +112,7 @@ Use the `list` command to find `$ID`s.
 Completed
 ---------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME completed $ID1 $ID2 $..
+./fbrary -l $LIBRARY_FILENAME completed $ID1 $ID2 $..
 ```
 Mark one or more audio books as completed.
 Use the `list` command to find `$ID`s.
@@ -120,7 +120,7 @@ Use the `list` command to find `$ID`s.
 NotCompleted
 ------------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME notcompleted $ID1 $ID2 $..
+./fbrary -l $LIBRARY_FILENAME notcompleted $ID1 $ID2 $..
 ```
 Mark one or more audio books as not completed.
 Use the `list` command to find `$ID`s.
@@ -128,7 +128,7 @@ Use the `list` command to find `$ID`s.
 Aborted
 -------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME aborted $ID1 $ID2 $..
+./fbrary -l $LIBRARY_FILENAME aborted $ID1 $ID2 $..
 ```
 Mark one or more audio books as aborted. Use this to mark books that you no longer want to listen to.
 Use the `list` command to find `$ID`s.
@@ -136,7 +136,7 @@ Use the `list` command to find `$ID`s.
 Unmatched
 ---------
 ```bash
-./Fbrary -l $LIBRARY_FILENAME unmatched $PATH
+./fbrary -l $LIBRARY_FILENAME unmatched $PATH
 ```
 Checks whether each mp3/ogg file in the given directory (and its subdirectories) is part of an audio book in the library. Use to find files that you have newly added to your files but not yet your library.
 Path comparison is done using absolute paths. Each file in the library is joined with the directiory of the `$LIBRARY_FILENAME`.
@@ -156,8 +156,8 @@ The path argument given to the tool will also be expanded to an absolute path.
 Files
 -----
 ```bash
-./Fbrary -l $LIBRARY_FILENAME files $ID
-./Fbrary -l $LIBRARY_FILENAME files $ID --
+./fbrary -l $LIBRARY_FILENAME files $ID
+./fbrary -l $LIBRARY_FILENAME files $ID --
 ```
 List all files of the given audio book.
 Use the `list` command to find `$ID`s.
@@ -165,8 +165,8 @@ Use the `list` command to find `$ID`s.
 Write
 -----
 ```bash
-./Fbrary -l $LIBRARY_FILENAME write
-./Fbrary -l $LIBRARY_FILENAME write artist album
+./fbrary -l $LIBRARY_FILENAME write
+./fbrary -l $LIBRARY_FILENAME write artist album
 ```
 Writes the meta data in your library back to the files of the audio book. You can specify which fields you want to be written to the file by appending their names. See the example above. Allowed values are:
 ```
@@ -188,24 +188,24 @@ bash
 
 If you want to quickly add many folders without checking their meta information use this command (bash required):
 ```bash
-find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -mindepth 1 -type d -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
+find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -mindepth 1 -type d -exec ./fbrary -l $LIBRARY_FILENAME add -n '{}' \;
 ```
 This will add each folder as a separate item in the library.the
 
 If you store many mp3/ogg files in a folder and want to add each file as its own audio book use this command (bash required):
 ```bash
-find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -name "*.mp3" -exec ./Fbrary -l $LIBRARY_FILENAME add -n '{}' \;
+find $FOLDER_TO_LOOK_INSIDE -maxdepth 1 -name "*.mp3" -exec ./fbrary -l $LIBRARY_FILENAME add -n '{}' \;
 ```
 
 powershell
 ----------
 If you want to add multiple mp3 files in the same folder as independent books use this command and replace the variables accordingly:
 ```
-Get-ChildItem $PATH_TO_FOLDER *.mp3 | Select-Object FullName -expandproperty FullName | % {./Fbrary -l $LIBRARY_FILE add -n $_ }
+Get-ChildItem $PATH_TO_FOLDER *.mp3 | Select-Object FullName -expandproperty FullName | % {./fbrary -l $LIBRARY_FILE add -n $_ }
 ```
 To add each folder in a folder as an independent book use the following command:
 ```
-Get-ChildItem $BASE_FOLDER -Directory | Select-Object FullName -expandproperty FullName | % {./Fbrary -l $LIBRARY_FILE add -n $_ }
+Get-ChildItem $BASE_FOLDER -Directory | Select-Object FullName -expandproperty FullName | % {./fbrary -l $LIBRARY_FILE add -n $_ }
 ```
 
 cmd
