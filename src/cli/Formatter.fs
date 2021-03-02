@@ -1,10 +1,8 @@
 namespace b0wter.Fbrary
 
-open System.Runtime.InteropServices
-open System.Text.RegularExpressions
-
 module Formatter =
     open b0wter.Fbrary.Assets
+    open System.Text.RegularExpressions
     
     type FormatReplacer = Audiobook.Audiobook -> string option
     type FormatReplacerWithFieldName = (string * FormatReplacer)
@@ -297,3 +295,53 @@ module Formatter =
                 let rows = columns |> columnsToRows
                 (columns |> createHeader) @ (rows |> List.map createRow) @ (columns |> createFooter)
             
+    module Html =
+        open System
+        open RazorLight
+        open b0wter.FSharp.Operators
+        
+        type BookViewmodel = {
+            Artist: string
+            Album: string
+            AlbumArtist: string
+            Completed: bool
+            Aborted: bool
+            Comment: string
+            Rating: int
+            Title: string
+            Duration: TimeSpan
+            Id: int
+            Genre: string
+        }
+        
+        type Viewmodel = {
+            Books: BookViewmodel list
+        }
+        
+        let toViewModel (book: Audiobook.Audiobook) =
+            {
+                Artist = book.Artist |?| String.Empty
+                Album = book.Album |?| String.Empty
+                AlbumArtist = book.AlbumArtist |?| String.Empty
+                Completed = book.State = Audiobook.State.Completed
+                Aborted = book.State = Audiobook.State.Aborted
+                Comment = book.Comment |?| String.Empty
+                Rating = book.Rating |> Option.map Rating.value |?| 0
+                Title = book.Title |?| String.Empty
+                Duration = book.Duration
+                Id = book.Id
+                Genre = book.Genre |?| String.Empty
+            }
+  
+        let engine<'a> () =
+            RazorLightEngineBuilder()
+                .UseEmbeddedResourcesProject(typeof<'a>)
+                .SetOperatingAssembly(typeof<'a>.Assembly)
+                .UseMemoryCachingProvider()
+                .Build()
+ 
+        let apply (template: string) (books: Audiobook.Audiobook list) =
+            let viewmodel = { Books = books |> List.map toViewModel }
+            let result = (engine<Viewmodel>().CompileRenderStringAsync("templatekey", template, viewmodel)).GetAwaiter().GetResult()
+            System.IO.File.WriteAllText("/tmp/fbrary.html", result)
+            result

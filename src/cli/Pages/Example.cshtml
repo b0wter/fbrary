@@ -1,0 +1,32 @@
+﻿@model b0wter.Fbrary.Formatter.Html.Viewmodel
+@{
+}
+<html>
+<head>
+    <title>"Fbrary List"</title>
+    <link rel="stylesheet" href="https://cdn.rawgit.com/Chalarangelo/mini.css/v3.0.1/dist/mini-default.min.css">
+</head>
+<body>
+<div class="container">
+    @foreach (var book in Model.Books)
+    {
+        <div class="row">
+            <div class="col-sm-4">
+                <!-- placeholder for images -->
+            </div>
+            <div class="col-sm-8">
+                <div>
+                    @book.Album
+                </div>
+                <div>
+                    @book.AlbumArtist
+                </div>
+                <div>
+                    @book.Artist
+                </div>
+            </div>
+        </div>
+    }
+</div>
+</body>
+</html>
