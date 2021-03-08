@@ -196,10 +196,10 @@ module Program =
                 return! (Error "The given library file does not exist. There is nothing to list.")
         }
         
-    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) : Result<int, string> =
+    let updateInteractively (library: Library.Library) (id: int) : Result<Library.Library, string> =
         result {
-            let! library = Library.fromFile libraryFile
-            let! book = library |> Library.findById updateConfig.Id
+            do printfn "Updating library entry #%i" id
+            let! book = library |> Library.findById id
             
             let questionFor key value = fun () -> sprintf "The current %s is '%s'. Do you want to change that? [y/N]" key value
             let readTextHint = fun () -> "Please enter the new value: "
@@ -229,10 +229,45 @@ module Program =
             let rating = updateRating book.Rating
             
             let updatedBook = { book with Artist = artist; Album = album; AlbumArtist = albumArtist; Title = title; Genre = genre; Comment = comment; Rating = rating }
-            let! updatedLibrary = library |> Library.updateBook updatedBook
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return! library |> Library.updateBook updatedBook
+        }
+        
+    let updateSingleField (library: Library.Library) (field: string) (value: string) (id: int) : Result<Library.Library, string> =
+        let parseRating (s: string) =
+            result {
+                let! i = Parsers.int s
+                return! Rating.create Ok Error i
+            }
             
-            return 0           
+        result {
+            do printfn "Updating library entry #%i" id
+            let! book = library |> Library.findById id
+            let! update = match field.ToLower() with
+                          | "artist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Artist = Some value })
+                          | "album" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Album = Some value})
+                          | "albumartist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with AlbumArtist = Some value})
+                          | "title" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Title = Some value})
+                          | "genre" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Genre = Some value})
+                          | "comment" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Comment = Some value})
+                          | "rating" ->
+                             parseRating value
+                             |> Result.map (fun r -> (fun (b: Audiobook.Audiobook) -> { b with Rating = Some r}))
+                          | _ -> failwithf "The field '%s' is unknown." field
+            let updatedBook = book |> update
+            return! library |> Library.updateBook updatedBook
+        }
+        
+    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) =
+        result {
+            let! library = Library.fromFile libraryFile
+            let! updatedLibrary =
+                match updateConfig.Field with
+                | Some (field, value) ->
+                    updateConfig.Ids |> List.foldResult (fun accumulator next -> updateSingleField accumulator field value next) library
+                | None ->
+                    updateConfig.Ids |> List.foldResult (fun accumulator next -> updateInteractively accumulator next) library
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return 0
         }
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =

@@ -43,6 +43,15 @@ module Arguments =
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."
                 | Completed -> "Only list books that have been completely listened to."
+                
+    type UpdateArgs =
+        | [<MainCommand>] Ids of int list
+        | Field of field:string * value:string
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Ids _ -> "Ids of the entries to edit. Use the `list` command to find ids."
+                | Field _ -> "Update a field immediately instead of using the interactive process. Takes two parameters: the name of the field and the value. Add quotes."
     
     type FileListingSeparator =
         | Space
@@ -74,7 +83,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
         | [<CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
         | [<CliPrefix(CliPrefix.None)>] Remove of int
-        | [<CliPrefix(CliPrefix.None)>] Update of int
+        | [<CliPrefix(CliPrefix.None)>] Update of ParseResults<UpdateArgs>
         | [<CliPrefix(CliPrefix.None)>] Rate of int option
         | [<CliPrefix(CliPrefix.None)>] Completed of int list
         | [<CliPrefix(CliPrefix.None)>] NotCompleted of int list
@@ -90,7 +99,7 @@ module Arguments =
                 | Add _ -> addArgumentHelp 
                 | List _ -> "List all audiobooks in the current library."
                 | Remove _ -> "Removes an audio book from the library."
-                | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
+                | Update _ -> "Use an interactive prompt to update the metadata of a library item. Requires an item id."
                 | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
                 | Completed _ -> "Mark the book with the given id as completely listened to."
                 | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
