@@ -44,11 +44,11 @@ module Config =
     
     type UpdateConfig = {
         Ids: int list
-        Field: (string * string) option
+        Fields: (string * string) list
     }
     let private emptyUpdateConfig = {
         Ids = []
-        Field = None
+        Fields = []
     }
     
     type RateConfig = {
@@ -145,7 +145,7 @@ module Config =
     let applyUpdateArg (config: UpdateConfig) (u: UpdateArgs) : UpdateConfig =
         match u with
         | UpdateArgs.Ids id -> { config with Ids = id }
-        | UpdateArgs.Field (field, value) -> { config with Field = Some (field, value) }
+        | UpdateArgs.Field (field, value) -> { config with Fields = (field, value) :: config.Fields }
     
     // Define functions that take arguments and apply them to a config.
     // Use this to fold the configuration from the arguments.

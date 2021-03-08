@@ -240,7 +240,7 @@ module Program =
             }
             
         result {
-            do printfn "Updating library entry #%i" id
+            do printfn "Updating library field '%s' for entry #%i" field id
             let! book = library |> Library.findById id
             let! update = match field.ToLower() with
                           | "artist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Artist = Some value })
@@ -261,11 +261,12 @@ module Program =
         result {
             let! library = Library.fromFile libraryFile
             let! updatedLibrary =
-                match updateConfig.Field with
-                | Some (field, value) ->
-                    updateConfig.Ids |> List.foldResult (fun accumulator next -> updateSingleField accumulator field value next) library
-                | None ->
+                match updateConfig.Fields with
+                | [] ->
                     updateConfig.Ids |> List.foldResult (fun accumulator next -> updateInteractively accumulator next) library
+                | fields ->
+                    let updateField (field, value) library = updateConfig.Ids |> List.foldResult (fun accumulator next -> updateSingleField accumulator field value next) library
+                    List.foldResult (fun accumulator next -> updateField next accumulator) library fields
             do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             return 0
         }

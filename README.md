@@ -106,6 +106,8 @@ Use the update command to edit the meta data for an existing library entry. You 
  * genre
  * comment
  * rating
+
+You can supply the `--field` argument multiple times.
 Use the `list` command to find `$ID`s.
 
 Rate
