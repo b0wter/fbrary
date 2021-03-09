@@ -1,5 +1,6 @@
 namespace b0wter.Fbrary
 
+open Argu
 open b0wter.Fbrary.Arguments
 
 module Config =
@@ -105,13 +106,14 @@ module Config =
         | Files of FilesConfig
         | Uninitialized
         | Write of WriteConfig
+        | Version
     
     type Config = {
         Command: Command
         Verbose: bool
         LibraryFile: string
     }
-    let empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
+    let private empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
@@ -197,5 +199,18 @@ module Config =
                               | _ -> emptyWriteConfig
             let updatedWriteConfig = w.GetAllResults() |> List.fold applyWriteArg writeConfig
             { config with Command = Write updatedWriteConfig }
+        | MainArgs.Version ->
+            { config with Command = Version }
             
-                   
+    let applyAllArgs (results: ParseResults<MainArgs>) =
+        //
+        // This is rather hacky but it makes sure that Argu checks the library parameter
+        // if the command is not the version command.
+        //
+        let args = results.GetAllResults ()
+        if args |> List.exists (function MainArgs.Version -> true | _ -> false) then
+            { empty with Command = Version }
+        else
+            let _ = results.GetResult(<@ MainArgs.Library @>)
+            args |> List.fold applyMainArg empty
+            

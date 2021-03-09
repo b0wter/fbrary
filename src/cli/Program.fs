@@ -163,7 +163,7 @@ module Program =
         let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
         let completedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.Completed
         let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.NotCompleted
-        let filterPredicate pattern = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString pattern
+        let filterPredicate (pattern: string) = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString (pattern.ToLower())
         let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
                           else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
         let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted, listConfig.Completed with
@@ -391,7 +391,8 @@ module Program =
             let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
             let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
             let results = parser.ParseCommandLine(inputs = argv, raiseOnUsage = true)
-            let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
+            //let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
+            let config = Config.applyAllArgs results
             
             match config.Command with
             | Config.Add addConfig ->
@@ -419,10 +420,13 @@ module Program =
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->
-                printfn "%s" (parser.PrintUsage())
+                do printfn "%s" (parser.PrintUsage())
                 return 1
             | Config.Write writeConfig ->
                 return! write config.LibraryFile writeConfig
+            | Config.Version ->
+                do printfn "%s" Version.current
+                return 0
         }
         
         match r with

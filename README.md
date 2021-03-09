@@ -191,6 +191,13 @@ To preview the changes add the `-d` (dry run) parameter.
 Hints
 =====
 
+version
+-------
+To make the program echo the current version use the `--version` parameter:
+```bash
+./fbrary --version
+```
+
 bash
 ----
 *Note: this works perfectly fine using the linux subsystem for Windows (WSL). You will however need to use the linux binaries instead of the windows binaries.*

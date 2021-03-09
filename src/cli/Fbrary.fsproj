@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="Version.fs" />
     <Compile Include="Utilities.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Rating.fs" />
