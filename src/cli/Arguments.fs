@@ -12,9 +12,9 @@ module Arguments =
        
     type AddArgs =
         | [<MainCommand>] Path of string
-        | [<AltCommandLine("-n")>] NonInteractive
-        | [<CustomCommandLine("--subdirectories-as-books")>] SubDirectoriesAsBooks
-        | [<CustomCommandLine("--files-as-books")>] FilesAsBooks
+        | [<AltCommandLine("-n"); Unique>] NonInteractive
+        | [<CustomCommandLine("--subdirectories-as-books"); Unique>] SubDirectoriesAsBooks
+        | [<CustomCommandLine("--files-as-books"); Unique>] FilesAsBooks
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -25,13 +25,13 @@ module Arguments =
         
     type ListArgs =
         | [<MainCommand>] Filter of string
-        | [<AltCommandLine("-f")>] Format of string
-        | [<AltCommandLine("-t")>] Table of string
-        | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w")>] MaxTableColumnWidth of int
-        | Ids of int list
-        | Unrated
-        | NotCompleted
-        | Completed
+        | [<AltCommandLine("-f"); Unique>] Format of string
+        | [<AltCommandLine("-t"); Unique>] Table of string
+        | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
+        | [<Unique>] Ids of int list
+        | [<Unique>] Unrated
+        | [<Unique>] NotCompleted
+        | [<Unique>] Completed
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -43,6 +43,15 @@ module Arguments =
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."
                 | Completed -> "Only list books that have been completely listened to."
+                
+    type UpdateArgs =
+        | [<MainCommand>] Ids of int list
+        | Field of field:string * value:string
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Ids _ -> "Ids of the entries to edit. Use the `list` command to find ids."
+                | Field _ -> "Update a field immediately instead of using the interactive process. Takes two parameters: the name of the field and the value. Add quotes."
     
     type FileListingSeparator =
         | Space
@@ -59,8 +68,8 @@ module Arguments =
 
     type WriteArgs =
         | [<MainCommand>] Fields of string list
-        | [<AltCommandLine("-d")>] DryRun
-        | [<AltCommandLine("-n")>] NonInteractive
+        | [<AltCommandLine("-d"); Unique>] DryRun
+        | [<AltCommandLine("-n"); Unique>] NonInteractive
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -70,11 +79,11 @@ module Arguments =
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
-        | [<AltCommandLine("-l"); Mandatory; First; AltCommandLine("--library-file")>] Library of string
+        | [<AltCommandLine("-l"); First; AltCommandLine("--library-file")>] Library of string
         | [<CliPrefix(CliPrefix.None)>] Add of ParseResults<AddArgs>
         | [<CliPrefix(CliPrefix.None)>] List of ParseResults<ListArgs>
         | [<CliPrefix(CliPrefix.None)>] Remove of int
-        | [<CliPrefix(CliPrefix.None)>] Update of int
+        | [<CliPrefix(CliPrefix.None)>] Update of ParseResults<UpdateArgs>
         | [<CliPrefix(CliPrefix.None)>] Rate of int option
         | [<CliPrefix(CliPrefix.None)>] Completed of int list
         | [<CliPrefix(CliPrefix.None)>] NotCompleted of int list
@@ -82,6 +91,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
+        | [<CliPrefix(CliPrefix.DoubleDash); First>] Version
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -90,7 +100,7 @@ module Arguments =
                 | Add _ -> addArgumentHelp 
                 | List _ -> "List all audiobooks in the current library."
                 | Remove _ -> "Removes an audio book from the library."
-                | Update _ -> "Use an interactive prompt to update the metadata of a library item. Required an item id."
+                | Update _ -> "Use an interactive prompt to update the metadata of a library item. Requires an item id."
                 | Rate _ -> "Rate one or more books. If you supply you rate a single book otherwise all unrated books are listed."
                 | Completed _ -> "Mark the book with the given id as completely listened to."
                 | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
@@ -98,5 +108,5 @@ module Arguments =
                 | Files _ -> "List all files of an audio book. Use the `list` command to find book ids."
                 | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
                 | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
+                | Version -> "Echo the version of this software."
                 
-

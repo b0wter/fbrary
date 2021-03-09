@@ -1,5 +1,6 @@
 namespace b0wter.Fbrary
 
+open Argu
 open b0wter.Fbrary.Arguments
 
 module Config =
@@ -43,7 +44,12 @@ module Config =
     }
     
     type UpdateConfig = {
-        Id: int
+        Ids: int list
+        Fields: (string * string) list
+    }
+    let private emptyUpdateConfig = {
+        Ids = []
+        Fields = []
     }
     
     type RateConfig = {
@@ -100,13 +106,14 @@ module Config =
         | Files of FilesConfig
         | Uninitialized
         | Write of WriteConfig
+        | Version
     
     type Config = {
         Command: Command
         Verbose: bool
         LibraryFile: string
     }
-    let empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
+    let private empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
@@ -114,7 +121,7 @@ module Config =
         | Filter filter -> { config with Filter = filter }
         | Table table -> { config with Table = Some table }
         | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = if size >= 4 then size else 4 }
-        | Ids ids -> { config with Ids = ids }
+        | ListArgs.Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
         | Unrated -> { config with Unrated = true }
@@ -136,6 +143,11 @@ module Config =
         | Fields fields -> { config with Fields = fields }
         | DryRun -> { config with DryRun = true }
         | NonInteractive -> { config with NonInteractive = true }
+        
+    let applyUpdateArg (config: UpdateConfig) (u: UpdateArgs) : UpdateConfig =
+        match u with
+        | UpdateArgs.Ids id -> { config with Ids = id }
+        | UpdateArgs.Field (field, value) -> { config with Fields = (field, value) :: config.Fields }
     
     // Define functions that take arguments and apply them to a config.
     // Use this to fold the configuration from the arguments.
@@ -147,22 +159,16 @@ module Config =
             { config with LibraryFile = l }
         | MainArgs.Remove id ->
             { config with Command = Remove { Id = id } }
-        | MainArgs.Update id ->
-            { config with Command = Update { Id = id } }
+        | MainArgs.Update update ->
+            let updateConfig = match config.Command with
+                               | Update u -> u
+                               | _ -> emptyUpdateConfig
+            let updatedUpdateConfig = update.GetAllResults() |> List.fold applyUpdateArg updateConfig
+            { config with Command = Update updatedUpdateConfig }
         | MainArgs.Add add ->
             let addConfig = match config.Command with
                             | Add a -> a
-                            | List _
-                            | Remove _
-                            | Update _
-                            | Uninitialized
-                            | Rate _
-                            | Unmatched _
-                            | NotCompleted _
-                            | Files _
-                            | Aborted _
-                            | Write _
-                            | Completed _ -> emptyAddConfig
+                            | _ -> emptyAddConfig
             let updatedAddConfig = add.GetAllResults() |> List.fold applyAddArg addConfig
             { config with Command = Add updatedAddConfig }
         | MainArgs.Rate id ->
@@ -175,18 +181,8 @@ module Config =
             { config with Command = Aborted { Ids = ids } }
         | MainArgs.Files files ->
             let filesConfig = match config.Command with
-                              | Add _
-                              | List _
-                              | Remove _
-                              | Update _
-                              | Uninitialized
-                              | Rate _
-                              | Unmatched _
-                              | NotCompleted _
-                              | Aborted _
-                              | Write _
-                              | Completed _ -> emptyFilesConfig
                               | Files f -> f
+                              | _ -> emptyFilesConfig
             let updatedFilesConfig = files.GetAllResults() |> List.fold applyFilesArg filesConfig
             { config with Command = Files updatedFilesConfig  }
         | MainArgs.Unmatched path ->
@@ -194,34 +190,27 @@ module Config =
         | MainArgs.List l ->
             let listConfig = match config.Command with
                              | List c -> c
-                             | Add _
-                             | Remove _
-                             | Update _
-                             | Uninitialized
-                             | Rate _
-                             | Unmatched _
-                             | NotCompleted _
-                             | Files _
-                             | Aborted _
-                             | Write _
-                             | Completed _ -> emptyListConfig
+                             | _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             { config with Command = List updatedListConfig }
         | MainArgs.Write w ->
             let writeConfig = match config.Command with
-                              | List _
-                              | Add _
-                              | Remove _
-                              | Update _
-                              | Uninitialized
-                              | Rate _
-                              | Unmatched _
-                              | NotCompleted _
-                              | Files _
-                              | Aborted _
-                              | Completed _ -> emptyWriteConfig
                               | Write w -> w
+                              | _ -> emptyWriteConfig
             let updatedWriteConfig = w.GetAllResults() |> List.fold applyWriteArg writeConfig
             { config with Command = Write updatedWriteConfig }
+        | MainArgs.Version ->
+            { config with Command = Version }
             
-                   
+    let applyAllArgs (results: ParseResults<MainArgs>) =
+        //
+        // This is rather hacky but it makes sure that Argu checks the library parameter
+        // if the command is not the version command.
+        //
+        let args = results.GetAllResults ()
+        if args |> List.exists (function MainArgs.Version -> true | _ -> false) then
+            { empty with Command = Version }
+        else
+            let _ = results.GetResult(<@ MainArgs.Library @>)
+            args |> List.fold applyMainArg empty
+            

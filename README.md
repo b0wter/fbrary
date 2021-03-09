@@ -96,9 +96,18 @@ Columns are limited to 64 characters (for the content additional characters are 
 Update
 ------
 ```bash
-./fbrary -l $LIBRARY_FILENAME update $ID
+./fbrary -l $LIBRARY_FILENAME update $ID1 $ID2 $..
 ```
-Use the update command to edit the meta data for an existing library entry.
+Use the update command to edit the meta data for an existing library entry. You can supply multiple ids. Defaults to interactive evaluation. Meaning that you will be prompted for each field. Alternatively you can use the `--field $KEY $VALUE` parameter to update the given field to the given value. Supported keys are:
+ * artist
+ * album
+ * albumartist
+ * title
+ * genre
+ * comment
+ * rating
+
+You can supply the `--field` argument multiple times.
 Use the `list` command to find `$ID`s.
 
 Rate
@@ -181,6 +190,13 @@ To preview the changes add the `-d` (dry run) parameter.
 
 Hints
 =====
+
+version
+-------
+To make the program echo the current version use the `--version` parameter:
+```bash
+./fbrary --version
+```
 
 bash
 ----

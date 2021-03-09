@@ -163,7 +163,7 @@ module Program =
         let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
         let completedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.Completed
         let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.NotCompleted
-        let filterPredicate pattern = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString pattern
+        let filterPredicate (pattern: string) = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString (pattern.ToLower())
         let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
                           else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
         let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted, listConfig.Completed with
@@ -196,10 +196,10 @@ module Program =
                 return! (Error "The given library file does not exist. There is nothing to list.")
         }
         
-    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) : Result<int, string> =
+    let updateInteractively (library: Library.Library) (id: int) : Result<Library.Library, string> =
         result {
-            let! library = Library.fromFile libraryFile
-            let! book = library |> Library.findById updateConfig.Id
+            do printfn "Updating library entry #%i" id
+            let! book = library |> Library.findById id
             
             let questionFor key value = fun () -> sprintf "The current %s is '%s'. Do you want to change that? [y/N]" key value
             let readTextHint = fun () -> "Please enter the new value: "
@@ -229,10 +229,46 @@ module Program =
             let rating = updateRating book.Rating
             
             let updatedBook = { book with Artist = artist; Album = album; AlbumArtist = albumArtist; Title = title; Genre = genre; Comment = comment; Rating = rating }
-            let! updatedLibrary = library |> Library.updateBook updatedBook
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return! library |> Library.updateBook updatedBook
+        }
+        
+    let updateSingleField (library: Library.Library) (field: string) (value: string) (id: int) : Result<Library.Library, string> =
+        let parseRating (s: string) =
+            result {
+                let! i = Parsers.int s
+                return! Rating.create Ok Error i
+            }
             
-            return 0           
+        result {
+            do printfn "Updating library field '%s' for entry #%i" field id
+            let! book = library |> Library.findById id
+            let! update = match field.ToLower() with
+                          | "artist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Artist = Some value })
+                          | "album" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Album = Some value})
+                          | "albumartist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with AlbumArtist = Some value})
+                          | "title" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Title = Some value})
+                          | "genre" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Genre = Some value})
+                          | "comment" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Comment = Some value})
+                          | "rating" ->
+                             parseRating value
+                             |> Result.map (fun r -> (fun (b: Audiobook.Audiobook) -> { b with Rating = Some r}))
+                          | _ -> failwithf "The field '%s' is unknown." field
+            let updatedBook = book |> update
+            return! library |> Library.updateBook updatedBook
+        }
+        
+    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) =
+        result {
+            let! library = Library.fromFile libraryFile
+            let! updatedLibrary =
+                match updateConfig.Fields with
+                | [] ->
+                    updateConfig.Ids |> List.foldResult (fun accumulator next -> updateInteractively accumulator next) library
+                | fields ->
+                    let updateField (field, value) library = updateConfig.Ids |> List.foldResult (fun accumulator next -> updateSingleField accumulator field value next) library
+                    List.foldResult (fun accumulator next -> updateField next accumulator) library fields
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return 0
         }
         
     let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
@@ -355,7 +391,8 @@ module Program =
             let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
             let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
             let results = parser.ParseCommandLine(inputs = argv, raiseOnUsage = true)
-            let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
+            //let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
+            let config = Config.applyAllArgs results
             
             match config.Command with
             | Config.Add addConfig ->
@@ -383,10 +420,13 @@ module Program =
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
             | Config.Uninitialized ->
-                printfn "%s" (parser.PrintUsage())
+                do printfn "%s" (parser.PrintUsage())
                 return 1
             | Config.Write writeConfig ->
                 return! write config.LibraryFile writeConfig
+            | Config.Version ->
+                do printfn "%s" Version.current
+                return 0
         }
         
         match r with
