@@ -12,6 +12,12 @@ source credentials
 VERSION=`git describe --abbrev=0 --tags`
 
 #
+# Update the version number in version.fs
+#
+NUMERIC_VERSION="${VERSION#?}"
+sed -i "s/[[:digit:]]\+.[[:digit:]]\+.[[:digit:]]\+/$NUMERIC_VERSION/" Version.fs
+
+#
 # Create binaries. Replace this with your own script.
 #
 mkdir -p out
