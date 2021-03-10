@@ -5,6 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <RootNamespace>b0wter.Fbrary</RootNamespace>
     <AssemblyName>Fbrary</AssemblyName>
+    <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,6 +30,7 @@
     <PackageReference Include="b0wter.FSharp" Version="4.11.1" />
     <PackageReference Include="FsToolkit.ErrorHandling" Version="2.0.0" />
     <PackageReference Include="FsToolkit.ErrorHandling.JobResult" Version="2.0.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="5.0.4" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.6" />
     <PackageReference Include="RazorLight" Version="2.0.0-rc.3" />
     <PackageReference Include="TagLibSharp" Version="2.2.0" />

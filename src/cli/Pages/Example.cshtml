@@ -8,25 +8,37 @@
 </head>
 <body>
 <div class="container">
+    <thead>
+        <caption>Audio Books</caption>
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Serie</th>
+        <th>Autor</th>
+    </tr>
+    </thead>
+    <tbody>
     @foreach (var book in Model.Books)
     {
-        <div class="row">
-            <div class="col-sm-4">
-                <!-- placeholder for images -->
-            </div>
-            <div class="col-sm-8">
-                <div>
-                    @book.Album
-                </div>
-                <div>
-                    @book.AlbumArtist
-                </div>
-                <div>
-                    @book.Artist
-                </div>
-            </div>
-        </div>
+        <tr>
+            <td data-label="Id">
+                @book.Id
+            </td>
+            
+            <td data-label="Name">
+                @book.Album
+            </td>
+            
+            <td data-label="Serie">
+                @book.AlbumArtist
+            </td>
+            
+            <td data-label="Autor">
+                @book.Artist
+            </td>
+        </tr>
     }
+    </tbody>
 </div>
 </body>
 </html>

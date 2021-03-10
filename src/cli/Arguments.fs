@@ -22,12 +22,46 @@ module Arguments =
                 | NonInteractive -> "Adds audiobooks without asking the user to check the metadata."
                 | SubDirectoriesAsBooks -> "Each subfolder inside the given path is interpreted as an independent audio book."
                 | FilesAsBooks -> "Each media file in the given path is interpreted as an independent audio book."
+ 
+    type HtmlFormatterArgs =
+        | [<Mandatory; AltCommandLine("-i")>] Input of string
+        | [<Mandatory; AltCommandLine("-o")>] Output of string
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Input _ -> "File to serve as template. Needs to be a valid razor template."
+                | Output _ -> "File to write the output to."
         
+    type TableFormatterArgs =
+        | [<MainCommand>] Format of string
+        | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Format _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
+                | MaxTableColumnWidth _ -> "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
+        
+    type CliFormatterArgs =
+        | [<MainCommand>] Format of string
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string." formattedFormatStringList
+        
+    type FormatterArgs =
+        | [<First; CliPrefix(CliPrefix.None); CustomCommandLine("html")>] HtmlFormatter of ParseResults<HtmlFormatterArgs>
+        | [<First; CliPrefix(CliPrefix.None); CustomCommandLine("table")>] TableFormatter of ParseResults<TableFormatterArgs>
+        | [<First; CliPrefix(CliPrefix.None); CustomCommandLine("cli")>] CliFormatter of ParseResults<CliFormatterArgs>
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | HtmlFormatter _ -> "Use razor template to format the results."
+                | TableFormatter _ -> "Print the results as a table."
+                | CliFormatter _ -> "Print the results using a simple format string."
+    
     type ListArgs =
         | [<MainCommand>] Filter of string
-        | [<AltCommandLine("-f"); Unique>] Format of string
-        | [<AltCommandLine("-t"); Unique>] Table of string
-        | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
+        | [<Unique>] Formatter of ParseResults<FormatterArgs>
         | [<Unique>] Ids of int list
         | [<Unique>] Unrated
         | [<Unique>] NotCompleted
@@ -36,9 +70,7 @@ module Arguments =
             member s.Usage =
                 match s with
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
-                | Format _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string. You can only use either 'table' or this option." formattedFormatStringList
-                | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
-                | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
+                | Formatter _ -> "Define the formatter you want to use."
                 | Ids _ -> "Only list audio books with the given ids."
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."

@@ -20,9 +20,10 @@ module Config =
     
     type ListConfig = {
         Filter: string 
-        Format: string option
-        Table: string option
-        MaxTableColumnWidth: int
+        //Format: string option
+        //Table: string option
+        //MaxTableColumnWidth: int
+        Formatter: FormatterArgs option
         Ids: int list
         Unrated: bool
         NotCompleted: bool
@@ -30,9 +31,10 @@ module Config =
     }
     let private emptyListConfig = {
         Filter = System.String.Empty
-        Format = None
-        Table = None
-        MaxTableColumnWidth = 64
+        Formatter = None
+        //Format = None
+        //Table = None
+        //MaxTableColumnWidth = 64
         Ids = []
         Unrated = false
         NotCompleted = false
@@ -115,12 +117,31 @@ module Config =
     }
     let private empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
     
+    let applyFormatterArg (results: ParseResults<FormatterArgs>) : FormatterArgs option =
+        // For unknown reasons the `mandatory` attributes
+        // are not honored, that is why the values are retrieved
+        // explicitly. That will make the argument parsing fail
+        // if they are not set.
+        match results.GetAllResults() with
+        | [] -> None
+        | [ CliFormatter formatter ] ->
+            let _ = formatter.GetAllResults ()
+            Some (FormatterArgs.CliFormatter formatter)
+        | [ TableFormatter formatter ] ->
+            let _ = formatter.GetAllResults ()
+            let _ = formatter.GetResult(<@ TableFormatterArgs.Format @>)
+            Some (FormatterArgs.TableFormatter formatter)
+        | [ HtmlFormatter formatter ] ->
+            let _ = formatter.GetAllResults ()
+            let _ = formatter.GetResult(<@ HtmlFormatterArgs.Input @>)
+            let _ = formatter.GetResult(<@ HtmlFormatterArgs.Output @>)
+            Some (FormatterArgs.HtmlFormatter formatter)
+        | _ -> failwith "You cannot currently use multiple formatters at the same time."
+    
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
-        | Format format -> { config with Format = Some format }
         | Filter filter -> { config with Filter = filter }
-        | Table table -> { config with Table = Some table }
-        | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = if size >= 4 then size else 4 }
+        | Formatter formatter -> { config with Formatter = formatter |> applyFormatterArg}
         | ListArgs.Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
