@@ -2,7 +2,6 @@ namespace b0wter.Fbrary
 
 open Argu
 open b0wter.Fbrary.Arguments
-open b0wter.FSharp
 
 module Config =
     
