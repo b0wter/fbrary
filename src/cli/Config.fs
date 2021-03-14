@@ -2,6 +2,7 @@ namespace b0wter.Fbrary
 
 open Argu
 open b0wter.Fbrary.Arguments
+open b0wter.FSharp
 
 module Config =
     
@@ -17,22 +18,35 @@ module Config =
         SubDirectoriesAsBooks = false
         FilesAsBooks = false
     }
+   
+    type TableListFormat = {
+        Format: string
+        MaxColWidth: int
+    }
+     
+    type ListFormat =
+        | Cli of format:string
+        | Table of TableListFormat
+    
+    let private defaultCliFormat = Formatter.CommandLine.defaultFormatString |> ListFormat.Cli
+    
+    let private defaultTableFormat =
+        {
+            Format = Formatter.CommandLine.defaultFormatString
+            MaxColWidth = 42
+        } 
     
     type ListConfig = {
         Filter: string 
-        Format: string option
-        Table: string option
-        MaxTableColumnWidth: int
         Ids: int list
+        Formats: ListFormat list
         Unrated: bool
         NotCompleted: bool
         Completed: bool
     }
     let private emptyListConfig = {
         Filter = System.String.Empty
-        Format = None
-        Table = None
-        MaxTableColumnWidth = 64
+        Formats = []
         Ids = []
         Unrated = false
         NotCompleted = false
@@ -117,10 +131,34 @@ module Config =
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
-        | Format format -> { config with Format = Some format }
+        | ListArgs.Cli format ->
+            let rec step accumulator remaining =
+                match remaining with
+                | [] ->
+                    (ListFormat.Cli format) :: accumulator
+                | (ListFormat.Cli _) :: tail ->
+                    accumulator @ (ListFormat.Cli format) :: tail
+                | otherFormat :: tail ->
+                    step (otherFormat :: accumulator) tail
+            let updatedFormats = step [] config.Formats
+            { config with Formats = updatedFormats }
+        | ListArgs.Table format ->
+            let rec step accumulator remaining =
+                match remaining with
+                | [] ->
+                    (ListFormat.Table { defaultTableFormat with Format = format }) :: accumulator
+                | (ListFormat.Table tableFormat) :: tail ->
+                    accumulator @ ((ListFormat.Table { tableFormat with Format = format }) :: tail)
+                | otherFormat :: tail ->
+                    step (otherFormat :: accumulator) tail
+            let updatedFormats = step [] config.Formats
+            { config with Formats = updatedFormats }
+        | ListArgs.MaxTableColumnWidth width ->
+            let formats = config.Formats
+                          |> List.map (function | ListFormat.Table f -> ListFormat.Table { f with MaxColWidth = width }
+                                                | ListFormat.Cli   f -> ListFormat.Cli f)
+            { config with Formats = formats }
         | Filter filter -> { config with Filter = filter }
-        | Table table -> { config with Table = Some table }
-        | MaxTableColumnWidth size -> { config with MaxTableColumnWidth = if size >= 4 then size else 4 }
         | ListArgs.Ids ids -> { config with Ids = ids }
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
@@ -192,6 +230,8 @@ module Config =
                              | List c -> c
                              | _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
+            let updatedListConfig = { updatedListConfig with Formats = updatedListConfig.Formats |> List.rev }
+            do printfn "%A" updatedListConfig
             { config with Command = List updatedListConfig }
         | MainArgs.Write w ->
             let writeConfig = match config.Command with
