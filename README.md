@@ -51,8 +51,6 @@ There are the following additional parameters:
  * `--notcompleted` - lists books that have not been marked completed
  * `--unrated` - lists books that do not have a rating
  * `--ids $ID1 $ID2 $..` - list only books with the given idst
- * `--format $FORMAT_STRING` - configure how to display the results (see below)
- * `--table $FORMAT_STRING` - display results as table with the given format (see below)
 
 You can freely combine the different arguments:
 ```bash
@@ -61,6 +59,12 @@ You can freely combine the different arguments:
 ./fbrary -l $LIBRARY_FILENAME list --notcompleted
 ./fbrary -l $LIBRARY_FILENAME list "Story" --completed
 ```
+
+The make the program produce any output at all you need to define at least one output:
+
+ * `--cli $FORMAT_STRING` - configure how to display the results (see below)
+ * `--table $FORMAT_STRING` - display results as table with the given format (see below)
+ * `--html $TEMPLATE_FILE $OUTPUT_FILE` - create an html file using the given template file (see below)
 
 ### Format
 Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
@@ -92,6 +96,34 @@ is the same as the following two:
 --table "%artist% (Artist) | %album% (Album)"
 ```
 Columns are limited to 64 characters (for the content additional characters are used as padding and border) by default. Use the `--max-col-width` (or `-w`) switch to override the value. Any value less than four will be changed to four.
+
+### Html
+The `input` file needs to be a valid razor page. Fbrary uses [RazorLight](https://github.com/toddams/RazorLight) to produce html pages. Follow this [link](https://www.learnrazorpages.com/razor-pages) to get an overview of how razor pages work. Inside the razor page you have access to the following viewmodel:
+```fsharp
+type BookViewmodel = {
+	Artist: string
+	Album: string
+	AlbumArtist: string
+	Completed: bool
+	Aborted: bool
+	Comment: string
+	Rating: int
+	Title: string
+	Duration: TimeSpan
+	Id: int
+	Genre: string
+}
+
+type Viewmodel = {
+	Books: BookViewmodel list
+}
+```
+You can find examples [here](https://github.com/b0wter/fbrary/tree/master/src/cli/html_templates/).
+The results are written to the `output` file. Example:
+
+```bash
+./fbrary -l library.json list --html html_templates/simple_table.cshtml ./library.html
+```
 
 Update
 ------
