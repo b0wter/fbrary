@@ -27,6 +27,7 @@ module Arguments =
         | [<MainCommand>] Filter of string
         | [<AltCommandLine("-c"); Unique>] Cli of format:string
         | [<AltCommandLine("-t"); Unique>] Table of format:string 
+        | [<AltCommandLine("-h"); Unique>] Html of input:string * output:string
         | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
         | [<Unique>] Ids of int list
         | [<Unique>] Unrated
@@ -38,6 +39,7 @@ module Arguments =
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
                 | Cli _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string." formattedFormatStringList
                 | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
+                | Html _ -> "Use a razor template. Required two arguments: input file and output file. See readme for details."
                 | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
                 | Ids _ -> "Only list audio books with the given ids."
                 | Unrated -> "Only list books that have not yet been rated."

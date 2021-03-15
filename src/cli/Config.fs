@@ -26,6 +26,7 @@ module Config =
     type ListFormat =
         | Cli of format:string
         | Table of TableListFormat
+        | Html of input:string * output:string
     
     let private defaultCliFormat = Formatter.CommandLine.defaultFormatString |> ListFormat.Cli
     
@@ -152,10 +153,22 @@ module Config =
                     step (otherFormat :: accumulator) tail
             let updatedFormats = step [] config.Formats
             { config with Formats = updatedFormats }
+        | ListArgs.Html (input, output) ->
+            let rec step accumulator remaining =
+                match remaining with
+                | [] ->
+                    (ListFormat.Html (input, output)) :: accumulator
+                | (ListFormat.Html _) :: tail ->
+                    accumulator @ (ListFormat.Html (input, output)) :: tail
+                | otherFormat :: tail ->
+                    step (otherFormat :: accumulator) tail
+            let updatedFormats = step [] config.Formats
+            { config with Formats = updatedFormats }
         | ListArgs.MaxTableColumnWidth width ->
             let formats = config.Formats
                           |> List.map (function | ListFormat.Table f -> ListFormat.Table { f with MaxColWidth = width }
-                                                | ListFormat.Cli   f -> ListFormat.Cli f)
+                                                | ListFormat.Cli   f -> ListFormat.Cli f
+                                                | ListFormat.Html  (i, o) -> ListFormat.Html (i, o))
             { config with Formats = formats }
         | Filter filter -> { config with Filter = filter }
         | ListArgs.Ids ids -> { config with Ids = ids }
@@ -230,7 +243,6 @@ module Config =
                              | _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             let updatedListConfig = { updatedListConfig with Formats = updatedListConfig.Formats |> List.rev }
-            do printfn "%A" updatedListConfig
             { config with Command = List updatedListConfig }
         | MainArgs.Write w ->
             let writeConfig = match config.Command with

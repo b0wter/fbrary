@@ -117,11 +117,22 @@ module Program =
             Ok None
 
     let formattedAudiobook (format: Config.ListFormat) (books: Audiobook.Audiobook list) : string list =
-        match format with
-        | Config.ListFormat.Cli f ->
-            books |> List.map (Formatter.CommandLine.applyAll f)
-        | Config.ListFormat.Table table ->
-            books |> Formatter.Table.apply table.MaxColWidth table.Format
+        let r = 
+            result {
+                match format with
+                    | Config.ListFormat.Cli f ->
+                        return books |> List.map (Formatter.CommandLine.applyAll f)
+                    | Config.ListFormat.Table table ->
+                        return books |> Formatter.Table.apply table.MaxColWidth table.Format
+                    | Config.ListFormat.Html (template, output) ->
+                        let! template = IO.readTextFromFile template
+                        let result = books |> Formatter.Html.apply template
+                        do! IO.writeTextToFile output result
+                        return []
+            }
+        match r with
+        | Ok o -> o
+        | Error e -> [ e ]
             
     let idGenerator (library: Library.Library) : (unit -> int) =
         let mutable counter = if library.Audiobooks.IsEmpty then 0
@@ -185,7 +196,6 @@ module Program =
                 let filtered = l.Audiobooks |> List.filter combinedPredicate
                 do if filtered.IsEmpty then do printfn "Found no matching audio books."
                    else do
-                       do printfn "%A" listConfig.Formats
                        listConfig.Formats
                        |> List.collect (fun format -> formattedAudiobook format filtered)
                        |> List.iter Console.WriteLine

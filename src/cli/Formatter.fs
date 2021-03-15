@@ -343,5 +343,4 @@ module Formatter =
         let apply (template: string) (books: Audiobook.Audiobook list) =
             let viewmodel = { Books = books |> List.map toViewModel }
             let result = (engine<Viewmodel>().CompileRenderStringAsync("templatekey", template, viewmodel)).GetAwaiter().GetResult()
-            System.IO.File.WriteAllText("/tmp/fbrary.html", result)
             result
