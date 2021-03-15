@@ -116,6 +116,7 @@ type BookViewmodel = {
 
 type Viewmodel = {
 	Books: BookViewmodel list
+    Generated: DateTime
 }
 ```
 You can find examples [here](https://github.com/b0wter/fbrary/tree/master/src/cli/html_templates/).

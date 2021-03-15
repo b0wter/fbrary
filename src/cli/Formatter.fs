@@ -316,6 +316,7 @@ module Formatter =
         
         type Viewmodel = {
             Books: BookViewmodel list
+            Generated: DateTime
         }
         
         let toViewModel (book: Audiobook.Audiobook) =
@@ -341,6 +342,6 @@ module Formatter =
                 .Build()
  
         let apply (template: string) (books: Audiobook.Audiobook list) =
-            let viewmodel = { Books = books |> List.map toViewModel }
+            let viewmodel = { Books = books |> List.map toViewModel; Generated = DateTime.Now }
             let result = (engine<Viewmodel>().CompileRenderStringAsync("templatekey", template, viewmodel)).GetAwaiter().GetResult()
             result

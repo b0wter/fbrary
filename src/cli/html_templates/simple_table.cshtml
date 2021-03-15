@@ -4,6 +4,7 @@
 <html>
 <head>
     <title>"Fbrary List"</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- 
     The following styling has been taken from: https://minicss.org/
     All at-symbols have been replaced with double at-symbols because
@@ -15,14 +16,20 @@
 </head>
 <body>
 <div class="container">
-    <table style="text-align: left; padding: 5px" class="striped">
+    <div class="row" style="text-align: center">
+        <h1 style="width: 100%">Audio book library</h1>
+        <h5 style="width: 100%">Generated @Model.Generated.ToString("dd.MM.yy, HH:mm")</h5>
+    </div>
+    <table style="text-align: left; padding: 5px; max-height: none !important;" class="striped">
         <thead>
-            <tr>
-                <th>Id</th>
-                <th>Name</th>
-                <th>Serie</th>
-                <th>Autor</th>
-            </tr>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Serie</th>
+            <th>Autor</th>
+            <th>Genre</th>
+            <th>Rating</th>
+        </tr>
         </thead>
         <tbody>
         @foreach (var book in Model.Books)
@@ -40,8 +47,16 @@
                     @book.AlbumArtist
                 </td>
 
-                <td data-label="Autor">
+                <td data-label="Author">
                     @book.Artist
+                </td>
+
+                <td data-label="Genre">
+                    @book.Genre
+                </td>
+
+                <td data-label="Rating">
+                    @book.Rating
                 </td>
             </tr>
         }
