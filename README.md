@@ -101,21 +101,21 @@ Columns are limited to 64 characters (for the content additional characters are 
 The `input` file needs to be a valid razor page. Fbrary uses [RazorLight](https://github.com/toddams/RazorLight) to produce html pages. Follow this [link](https://www.learnrazorpages.com/razor-pages) to get an overview of how razor pages work. Inside the razor page you have access to the following viewmodel:
 ```fsharp
 type BookViewmodel = {
-	Artist: string
-	Album: string
-	AlbumArtist: string
-	Completed: bool
-	Aborted: bool
-	Comment: string
-	Rating: int
-	Title: string
-	Duration: TimeSpan
-	Id: int
-	Genre: string
+    Artist: string
+    Album: string
+    AlbumArtist: string
+    Completed: bool
+    Aborted: bool
+    Comment: string
+    Rating: int
+    Title: string
+    Duration: TimeSpan
+    Id: int
+    Genre: string
 }
 
 type Viewmodel = {
-	Books: BookViewmodel list
+    Books: BookViewmodel list
     Generated: DateTime
 }
 ```
