@@ -122,7 +122,7 @@ module Audiobook =
             let mutable value = None
             do printfn "Do you want to add a rating? [y/N]"
             if Console.ReadKey(true).Key = ConsoleKey.Y then
-                do printfn "Please enter a value from 1 to 10."
+                do printfn "Please enter a value from %i to %i." Rating.minValue Rating.maxValue
                 while breaker do
                     match Parsers.parseInt(Console.ReadLine()) |> Result.fromOption "Input is not a number." |> Result.bind (Rating.create Ok Error) with
                     | Ok i ->
