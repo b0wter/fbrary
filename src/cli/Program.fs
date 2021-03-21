@@ -116,17 +116,18 @@ module Program =
         else
             Ok None
 
-    let formattedAudiobook (format: Config.ListFormat) (books: Audiobook.Audiobook list) : string list =
+    let formattedAudiobook (format: Config.ListFormat) (sort: Config.SortConfig) (books: Audiobook.Audiobook list) : string list =
         let r = 
             result {
+                let sortedBooks = books |> sort 
                 match format with
                     | Config.ListFormat.Cli f ->
-                        return books |> List.map (Formatter.CommandLine.applyAll f)
+                        return sortedBooks |> List.map (Formatter.CommandLine.applyAll f)
                     | Config.ListFormat.Table table ->
-                        return books |> Formatter.Table.apply table.MaxColWidth table.Format
+                        return sortedBooks |> Formatter.Table.apply table.MaxColWidth table.Format
                     | Config.ListFormat.Html (template, output) ->
                         let! template = IO.readTextFromFile template
-                        let result = books |> Formatter.Html.apply template
+                        let result = sortedBooks |> Formatter.Html.apply template
                         do! IO.writeTextToFile output result
                         return []
             }
@@ -197,7 +198,7 @@ module Program =
                 do if filtered.IsEmpty then do printfn "Found no matching audio books."
                    else do
                        listConfig.Formats
-                       |> List.collect (fun format -> formattedAudiobook format filtered)
+                       |> List.collect (fun format -> formattedAudiobook format listConfig.Sort filtered)
                        |> List.iter Console.WriteLine
                 return 0
             | None ->

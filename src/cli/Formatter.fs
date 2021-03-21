@@ -88,6 +88,9 @@ module Formatter =
         completedStringFormatString
     ]
     let allFormantPlaceholders = allFormatStrings |> List.map fst
+    let allFieldPlaceholders =
+        // TODO: This is rather hacky. Think of a way that this and the format placeholders can be merged propperly.
+        (allFormatStrings |> List.map (fst >> (fun s -> s.Replace("%", ""))) |> List.except [ "rating_dots"; "rating_string"; "completed_symbol"; "completed_string" ]) @ [ "rating"; "completed" ]
     
     module CommandLine =
         
@@ -283,7 +286,6 @@ module Formatter =
             identifiers |> List.map createColumn
             
         let apply (maxColumnWidth: int) (tableFormat: string) (books: Audiobook.Audiobook list) =
-            let books = books |> List.sortBy (fun b -> b.Id)
             let columnIdentifiers = elementRegex.Matches(tableFormat) |> Seq.map (fun m -> m.Value) |> List.ofSeq
             let validIdentifiers = columnIdentifiers |> Utilities.List.splitBy (fun identifier -> allFormantPlaceholders |> List.contains identifier)
             do if validIdentifiers.NonMatching.IsEmpty then ()

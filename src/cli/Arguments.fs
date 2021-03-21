@@ -9,6 +9,7 @@ module Arguments =
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
     let formattedFormatStringList = System.String.Join(", ", Formatter.allFormantPlaceholders)
+    let formattedFieldList = System.String.Join(", ", Formatter.allFieldPlaceholders)
        
     type AddArgs =
         | [<MainCommand>] Path of string
@@ -28,6 +29,7 @@ module Arguments =
         | [<AltCommandLine("-c"); Unique>] Cli of format:string
         | [<AltCommandLine("-t"); Unique>] Table of format:string 
         | [<AltCommandLine("-h"); Unique>] Html of input:string * output:string
+        | [<AltCommandLine("-s"); Unique>] Sort of string list
         | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
         | [<Unique>] Ids of int list
         | [<Unique>] Unrated
@@ -40,6 +42,7 @@ module Arguments =
                 | Cli _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string." formattedFormatStringList
                 | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
                 | Html _ -> "Use a razor template. Required two arguments: input file and output file. See readme for details."
+                | Sort _ -> sprintf "Define the order in which the books are sorted. You can supply multiple parameters and the books will be sorted by all of them in order. The default sort order is ascending. To sort descending add `:d` to the field name (e.g. \"album:d\"). You can use any of the placeholder fields: '%s'" formattedFieldList
                 | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
                 | Ids _ -> "Only list audio books with the given ids."
                 | Unrated -> "Only list books that have not yet been rated."

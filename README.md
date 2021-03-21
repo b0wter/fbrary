@@ -66,6 +66,17 @@ The make the program produce any output at all you need to define at least one o
  * `--table $FORMAT_STRING` - display results as table with the given format (see below)
  * `--html $TEMPLATE_FILE $OUTPUT_FILE` - create an html file using the given template file (see below)
 
+### Sort order
+You can define the sort order using the `--sort` parameter. You can supply as many arguments as you like. The books are sorted by the first argument, then by the second and so on. The default sort order is _ascending_. If you want to sort _desceding_ you need to add `:d` to the field name.
+```bash
+# Sort by id (ascending).
+./fbrary -l $LIBRARY_FILENAME list --sort id
+# Sort by album artist first, items with the same album artist are sorted by id (both ascending).
+./fbrary -l $LIBRARY_FILENAME list --sort albumartist id
+# Sory by rating (descending).
+./fbrary -l $LIBRARY_FILENAME list --sort rating:d
+```
+
 ### Format
 Use a format string to define how to output each book. Any string can be supplied and the following placeholders will be replaced:
 ```

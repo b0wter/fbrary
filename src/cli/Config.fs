@@ -1,7 +1,11 @@
 namespace b0wter.Fbrary
 
+open System
+open System.Collections.Generic
 open Argu
 open b0wter.Fbrary.Arguments
+open b0wter.FSharp.Operators
+open System.Linq
 
 module Config =
     
@@ -12,7 +16,7 @@ module Config =
         FilesAsBooks: bool
     }
     let private emptyAddConfig = {
-        Path = System.String.Empty
+        Path = String.Empty
         NonInteractive = false
         SubDirectoriesAsBooks = false
         FilesAsBooks = false
@@ -36,17 +40,65 @@ module Config =
             MaxColWidth = 42
         } 
     
+    type SortOrder =
+        | Ascending
+        | Descending
+    
+    type SortConfig = Audiobook.Audiobook list -> Audiobook.Audiobook list
+    type private Sorter = Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>> -> IOrderedEnumerable<Audiobook.Audiobook>
+    
+    let applySortField (f: Sorter option) (field: string) = //: Sorter =
+        let sortOrder = if field.Contains(":d") then SortOrder.Descending else SortOrder.Ascending
+        let sorter (books: Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>>)
+                : Func<Audiobook.Audiobook, 'b> -> IOrderedEnumerable<Audiobook.Audiobook> =
+            match books, sortOrder with
+            | Choice1Of2 start, Ascending -> start.OrderBy
+            | Choice1Of2 start, Descending -> start.OrderByDescending
+            | Choice2Of2 middle, Ascending -> middle.ThenBy
+            | Choice2Of2 middle, Descending -> middle.ThenByDescending
+            
+        let noneStringValue = match sortOrder with Ascending -> "ZZZZZZZZZZZZZ" | Descending -> "AAAAAAAAAAAA"
+
+        let composeF (previous: Sorter option) (current: Sorter) : Sorter =
+            match previous with
+            | None -> current
+            | Some f -> f >> (fun x -> Choice2Of2 x) >> current
+        
+        match field.ToLower().Replace(":d", "") with
+        | "id" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, int>(fun b -> b.Id)))
+        | "artist" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Artist |?| noneStringValue)))
+        | "albumartist" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.AlbumArtist |?| noneStringValue)))
+        | "album" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Album |?| noneStringValue)))
+        | "title" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Title |?| noneStringValue)))
+        | "genre" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Genre |?| noneStringValue)))
+        | "duration" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, TimeSpan>(fun b -> b.Duration)))
+        | "rating" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, int>(fun b -> b.Rating |> Option.map Rating.value |?| 0)))
+        | "completed" ->
+            composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, Audiobook.State>(fun b -> b.State)))
+        | _ -> 
+            failwithf "The field '%s' is unknown." field
+               
     type ListConfig = {
         Filter: string 
         Ids: int list
         Formats: ListFormat list
+        Sort: SortConfig 
         Unrated: bool
         NotCompleted: bool
         Completed: bool
     }
     let private emptyListConfig = {
-        Filter = System.String.Empty
+        Filter = String.Empty
         Formats = []
+        Sort = (fun books -> books |> List.sortBy (fun b -> b.Id))
         Ids = []
         Unrated = false
         NotCompleted = false
@@ -127,7 +179,7 @@ module Config =
         Verbose: bool
         LibraryFile: string
     }
-    let private empty = { Command = Uninitialized; Verbose = false; LibraryFile = System.String.Empty }
+    let private empty = { Command = Uninitialized; Verbose = false; LibraryFile = String.Empty }
     
     let applyListArg (config: ListConfig) (l: ListArgs) : ListConfig =
         match l with
@@ -175,6 +227,15 @@ module Config =
         | ListArgs.NotCompleted -> { config with NotCompleted = true }
         | ListArgs.Completed -> { config with Completed = true }
         | Unrated -> { config with Unrated = true }
+        | Sort fields ->
+            let linqSorter = fields |> List.fold (fun (accumulator: Sorter option) next -> Some (applySortField accumulator next)) None
+            let sorter = match linqSorter with
+                         | None -> id
+                         | Some s ->
+                             fun (books: Audiobook.Audiobook list) ->
+                                 let b = Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>>.Choice1Of2 books
+                                 s b |> List.ofSeq
+            { config with Sort = sorter } 
         
     let applyAddArg (config: AddConfig) (a: AddArgs) : AddConfig =
         match a with
