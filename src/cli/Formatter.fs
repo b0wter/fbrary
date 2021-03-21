@@ -89,7 +89,7 @@ module Formatter =
     ]
     let allFormantPlaceholders = allFormatStrings |> List.map fst
     let allFieldPlaceholders =
-        // TODO: This is rather hacky. Think of a way that this and the format placeholders can be merged propperly.
+        // TODO: This is rather hacky. Think of a way that this and the format placeholders can be merged properly.
         (allFormatStrings |> List.map (fst >> (fun s -> s.Replace("%", ""))) |> List.except [ "rating_dots"; "rating_string"; "completed_symbol"; "completed_string" ]) @ [ "rating"; "completed" ]
     
     module CommandLine =

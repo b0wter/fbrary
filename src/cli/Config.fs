@@ -62,7 +62,7 @@ module Config =
         let composeF (previous: Sorter option) (current: Sorter) : Sorter =
             match previous with
             | None -> current
-            | Some f -> f >> (fun x -> Choice2Of2 x) >> current
+            | Some f -> f >> Choice2Of2 >> current
         
         match field.ToLower().Replace(":d", "") with
         | "id" ->

@@ -57,9 +57,10 @@ module TagLib =
     let private confContains placeholder (config: Config.WriteConfig) =
         config.Fields |> List.contains placeholder
         
-    let private setIf name fieldName (empty: 'a) (isActive: Config.WriteConfig -> bool) (set: 'a -> TagLib.File -> unit)
+    let private setIf name _ (empty: 'a) (isActive: Config.WriteConfig -> bool) (set: 'a -> TagLib.File -> unit)
                            (get: TagLib.File -> string) (value: 'a option)
                            (config: Config.WriteConfig) (file: TagLib.File) =
+        // The third parameter `_` is actually the field name and is reserved for future use.
         if config |> isActive then
             do match value with
                | Some v ->
@@ -71,7 +72,7 @@ module TagLib =
             file
         else file
         
-    let setArtist = setIf "Arrist" "TPE1" String.Empty (confContains artistPlaceholder) (fun v t -> t.Tag.Performers <- [| v |]) (fun t -> String.Join(", ", t.Tag.Performers))
+    let setArtist = setIf "Artist" "TPE1" String.Empty (confContains artistPlaceholder) (fun v t -> t.Tag.Performers <- [| v |]) (fun t -> String.Join(", ", t.Tag.Performers))
     let setAlbum = setIf "Album" "TALB" String.Empty (confContains albumPlaceholder) (fun v t -> t.Tag.Album <- v) (fun t -> t.Tag.Album)
     let setAlbumArtist = setIf "Album Artist" "TPE2" String.Empty (confContains albumArtistPlaceholder) (fun v t -> t.Tag.AlbumArtists <- [| v |]) (fun t -> String.Join(", ", t.Tag.AlbumArtists))
     let setGenre = setIf "Genre" "TCON" String.Empty (confContains genrePlaceholder) (fun v t -> t.Tag.Genres <- [| v |]) (fun t -> String.Join(", ", t.Tag.Genres))

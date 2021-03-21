@@ -272,9 +272,9 @@ module Program =
             let! updatedLibrary =
                 match updateConfig.Fields with
                 | [] ->
-                    updateConfig.Ids |> List.foldResult (fun accumulator next -> updateInteractively accumulator next) library
+                    updateConfig.Ids |> List.foldResult updateInteractively library
                 | fields ->
-                    let updateField (field, value) library = updateConfig.Ids |> List.foldResult (fun accumulator next -> updateSingleField accumulator field value next) library
+                    let updateField (field, value) library = updateConfig.Ids |> List.foldResult (fun accumulator -> updateSingleField accumulator field value) library
                     List.foldResult (fun accumulator next -> updateField next accumulator) library fields
             do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
             return 0
@@ -373,7 +373,7 @@ module Program =
         result {
             let! library = Library.fromFile libraryFile
             let! book = Library.findById config.Id library
-            let files = book |> Audiobook.allFiles |> List.map (fun s -> sprintf "\"%s\"" s)
+            let files = book |> Audiobook.allFiles |> List.map (sprintf "\"%s\"")
             let separator = match config.Separator with
                             | Arguments.FileListingSeparator.Space -> " "
                             | Arguments.FileListingSeparator.NewLine -> Environment.NewLine
