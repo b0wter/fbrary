@@ -5,6 +5,7 @@ OWNER=b0wter
 REMOTE=https://api.github.com
 
 VERSIONS=(linux-x64 linux-arm64 linux-arm win7-x64 win7-x86 win10-x64 win10-x86 osx-x64) 
+TYPES=("_self_contained" "_dotnet_core_required")
 
 echo "sourcing credentials"
 source credentials
@@ -22,16 +23,31 @@ sed -i "s/[[:digit:]]\+.[[:digit:]]\+.[[:digit:]]\+/$NUMERIC_VERSION/" Version.f
 #
 mkdir -p out
 rm out/*
+
+# The following command combines everything into a single file but is currently
+# not in use because it breaks RazorLight.
+# dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true
+# rename 'y/A-Z/a-z/' Fbrary*
+# Build self-contained releases.
 for ARCHITECTURE in ${VERSIONS[@]}; do
-	echo "building $ARCHITECTURE"
-	# dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true
+	echo "building $ARCHITECTURE (self-contained true)"
 	dotnet publish -r $ARCHITECTURE -c Release --self-contained true
 	LOCATION="bin/Release/net5.0/${ARCHITECTURE}/publish"
 	cd ${LOCATION}
-	# rename 'y/A-Z/a-z/' Fbrary*
 	zip -r "${ARCHITECTURE}" *
 	cd -
-	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}.zip"
+	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}${TYPES[0]}.zip"
+done
+
+# Build releases which depend on a local installation of the dotnet core framework.
+for ARCHITECTURE in ${VERSIONS[@]}; do
+    echo "building $ARCHITECTURE (self-contained false)"
+	dotnet publish -r $ARCHITECTURE -c Release --self-contained false
+	LOCATION="bin/Release/net5.0/${ARCHITECTURE}/publish"
+	cd ${LOCATION}
+	zip -r "${ARCHITECTURE}" *
+	cd -
+	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}${TYPES[1]}.zip"
 done
 
 #
@@ -54,10 +70,12 @@ UPLOAD_URL=$(curl --header "Authorization: token $GITHUB_ACCESS_KEY" $REMOTE/rep
 
 # Upload the individual files
 for ARCHITECTURE in ${VERSIONS[@]}; do
-	echo "Uploading asset for architecture $ARCHITECTURE (version $VERSION)."
-	curl --header "Authorization: token $GITHUB_ACCESS_KEY" \
-	     --header "Content-Type: application/zip" \
-		 --data-binary "@out/${ARCHITECTURE}_${VERSION}.zip" \
-             $UPLOAD_URL?name=${ARCHITECTURE}_${VERSION}.zip
+    for TYPE in ${TYPES[@]}; do
+        echo "Uploading asset for architecture $ARCHITECTURE (version $VERSION)."
+        curl --header "Authorization: token $GITHUB_ACCESS_KEY" \
+          --header "Content-Type: application/zip" \
+          --data-binary "@out/${ARCHITECTURE}_${VERSION}${TYPE}.zip" \
+          $UPLOAD_URL?name=${ARCHITECTURE}_${VERSION}${TYPE}.zip
+    done
 done
 

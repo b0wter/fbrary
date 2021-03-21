@@ -142,17 +142,3 @@ module Formatter =
                 let result = Formatter.CommandLine.applyAll input dummy
                 
                 result |> should equal output
-
-    module HtmlTests =
-        
-        module Apply =
-            open b0wter.Fbrary.Formatter.Html
-            
-            [<Fact>]
-            let ``Simple test`` () =
-                let template = System.IO.File.ReadAllText("/home/b0wter/work/fbrary/src/cli/Pages/Example.cshtml")
-                
-                let result = apply template [ dummy; dummy; dummy ]
-                
-                result |> should equal "Hello Artist."
-            

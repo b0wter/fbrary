@@ -400,7 +400,6 @@ module Program =
             let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
             let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
             let results = parser.ParseCommandLine(inputs = argv, raiseOnUsage = true)
-            //let config = results.GetAllResults() |> List.fold Config.applyMainArg Config.empty
             let config = Config.applyAllArgs results
             
             match config.Command with
