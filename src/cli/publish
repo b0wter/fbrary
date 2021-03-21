@@ -24,10 +24,11 @@ mkdir -p out
 rm out/*
 for ARCHITECTURE in ${VERSIONS[@]}; do
 	echo "building $ARCHITECTURE"
-	dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true
+	# dotnet publish -r $ARCHITECTURE -p:PublishSingleFile=true -c Release --self-contained true -p:IncludeNativeLibrariesForSelfExtract=true
+	dotnet publish -r $ARCHITECTURE -c Release --self-contained true
 	LOCATION="bin/Release/net5.0/${ARCHITECTURE}/publish"
 	cd ${LOCATION}
-	rename 'y/A-Z/a-z/' Fbrary*
+	# rename 'y/A-Z/a-z/' Fbrary*
 	zip -r "${ARCHITECTURE}" *
 	cd -
 	mv "${LOCATION}/${ARCHITECTURE}.zip" "out/${ARCHITECTURE}_${VERSION}.zip"
