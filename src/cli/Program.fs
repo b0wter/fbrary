@@ -237,7 +237,7 @@ module Program =
                           | "rating" ->
                              parseRating value
                              |> Result.map (fun r -> (fun (b: Audiobook.Audiobook) -> { b with Rating = Some r}))
-                          | _ -> failwithf "The field '%s' is unknown." field
+                          | _ -> Error (sprintf "The field '%s' is unknown." field)
             let updatedBook = book |> update
             return! library |> Library.updateBook updatedBook
         }
