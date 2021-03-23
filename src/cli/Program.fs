@@ -14,30 +14,6 @@ module Program =
         if argv.Length = 1 then Ok argv.[0]
         else Error "This program takes exactly one argument, the directory to recursively scan for mp3 files."
         
-    let filenameInRows (maxRowLength: int) (filename: string) : string list =
-        let pathRoot = Path.GetPathRoot filename
-        let filename = filename.Substring(pathRoot.Length)
-        let parts =
-            if String.IsNullOrWhiteSpace pathRoot then
-                filename.Split(Path.DirectorySeparatorChar) |> List.ofArray
-            else
-                pathRoot :: (filename.Split(Path.DirectorySeparatorChar) |> List.ofArray)
-        let separator = Path.DirectorySeparatorChar.ToString()
-        let separatorLength = separator.Length
-        
-        let rec step (rowsAccumulator: string list) (currentRow: string) (remainingParts: string list) : string list =
-            match remainingParts with
-            | [] -> (currentRow :: rowsAccumulator) |> List.rev |> List.filter (not << String.IsNullOrWhiteSpace)
-            | head :: tail ->
-                if currentRow.Length + head.Length + separatorLength <= maxRowLength then
-                    step rowsAccumulator (currentRow + head + separator) tail
-                elif head.Length > maxRowLength then
-                    step (currentRow :: rowsAccumulator) (head |> (IO.reduceFilenameLength maxRowLength)) tail
-                else
-                    step (currentRow :: rowsAccumulator) (head + separator) tail
-        
-        step [] String.Empty parts
-        
     let addDirectory (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) =
         let getRegular path =
             IO.getIfDirectory path |> Result.bind (IO.listFiles true) |> Result.map List.singleton
@@ -116,7 +92,7 @@ module Program =
         else
             Ok None
 
-    let formattedAudiobook (format: Config.ListFormat) (sort: Config.SortConfig) (books: Audiobook.Audiobook list) : string list =
+    let formatAudiobook (format: Config.ListFormat) (sort: Config.SortConfig) (books: Audiobook.Audiobook list) : string list =
         let r = 
             result {
                 let sortedBooks = books |> sort 
@@ -198,7 +174,7 @@ module Program =
                 do if filtered.IsEmpty then do printfn "Found no matching audio books."
                    else do
                        listConfig.Formats
-                       |> List.collect (fun format -> formattedAudiobook format listConfig.Sort filtered)
+                       |> List.collect (fun format -> formatAudiobook format listConfig.Sort filtered)
                        |> List.iter Console.WriteLine
                 return 0
             | None ->

@@ -29,13 +29,4 @@ module Metadata =
             HasPicture = hasPicture
             Comment = comment
         }
-    
-    let propertyList (m: Metadata) =
-        [ m.Artist; m.Album; m.Title ] |> List.choose id
         
-    let maxPropertyLength (m: Metadata) =
-        // Add an empty string so that there will be at least a single entry.
-        "" :: (m |> propertyList) |> List.maxBy (fun s -> s.Length) |> String.length
-    
-    let filenameLength (m: Metadata) =
-        m.Filename.Length

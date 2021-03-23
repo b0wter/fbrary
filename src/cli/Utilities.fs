@@ -8,19 +8,16 @@ module Utilities =
             else Error "The given string cannot be converted to a number."
     
     module Result =
-        
         let fromOption (errorCase: 'a) (o: 'b option) : Result<'b, 'a> =
             match o with
             | Some b -> Ok b
             | None -> Error (errorCase)
             
     module String =
-        
         let contains (searchString: string) (content: string) =
             content.Contains(searchString)
             
     module List =
-        
         let splitBy (predicate: 'a -> bool) (items: 'a list) =
             let rec step (nonMatchingAccumulator: 'a list) (matchingAccumulator: 'a list) (remaining: 'a list) =
                 match remaining with

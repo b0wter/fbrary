@@ -49,39 +49,6 @@ module IO =
         if Directory.Exists(path) then Ok path
         elif File.Exists(path) then Error "The given path is a file not a directory."
         else Error "The given path does not exist."
-        
-    let getIfFile (path: string) =
-        if File.Exists(path) then Ok path
-        elif Directory.Exists(path) then Error "The given path is a directory not a file."
-        else Error "The given path does not exist."
-        
-    /// Shortens a filename by consecutively removing the root path.
-    /// If this results in an empty string the filename without any
-    /// directory information is returned. If the filename itself is too long
-    /// the end is trimmed and "..." is added.
-    let shortenFilename (maxLength: int) (filename: string) : string =
-        if filename.Length <= maxLength then filename
-        else
-            let mutable f = filename
-            while f.Length > maxLength do
-                f <- removeFirstFolder f
-            if f |> String.IsNullOrWhiteSpace then
-                let filenameOnly = Path.GetFileName(filename)
-                if filenameOnly.Length > maxLength then
-                    filenameOnly.Substring(maxLength - 3) + "..."
-                else filenameOnly
-            else f
-            
-    let reduceFilenameLength (maxLength: int) (filename: string) =
-        if filename.Length <= maxLength then filename
-        else filename.Substring(0, maxLength - 3) + "..."
-                
-    let writeBytesToFile (filename: string) (bytes: byte []) =
-        try
-            File.WriteAllBytes(filename, bytes) |> Ok
-        with
-            ex ->
-                Error ex.Message
                 
     let writeTextToFile (filename: string) (text: string) : Result<unit, string> =
         try

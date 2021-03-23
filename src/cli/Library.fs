@@ -13,9 +13,6 @@ module Library =
         BasePath: string option
     }
     
-    let withSortedBooks (l: Library) =
-        { l with Audiobooks = l.Audiobooks |> List.sortByDescending (fun a -> a.Id) }
-    
     let serialize (l: Library) : string =
         Microsoft.FSharpLu.Json.Compact.serialize l
         
@@ -31,9 +28,6 @@ module Library =
                 Error e
 
     let empty = { Audiobooks = []; LastScanned = DateTime.MinValue; BasePath = None }
-    
-    let containsId id (l: Library) : bool =
-        l.Audiobooks |> List.map Audiobook.id |> List.contains id
     
     let addTo (l: Library) (a: Audiobook.Audiobook) : Result<Library, string> =
         match l.Audiobooks |> List.tryFind (Audiobook.isSameSource a) with
@@ -72,7 +66,6 @@ module Library =
             Ok { l with Audiobooks = (List.replace book a l.Audiobooks) }
         | None -> Error (sprintf "An audio book with the id '%i' does not exist." a.Id)
         
-                
     let removeBook (a: Audiobook.Audiobook) (l: Library) : Library =
         let updatedBooks = l.Audiobooks |> List.filter (fun book -> book.Id <> a.Id)
         { l with Audiobooks = updatedBooks }
