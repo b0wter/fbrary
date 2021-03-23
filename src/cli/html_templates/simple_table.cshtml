@@ -57,7 +57,14 @@
                 </td>
 
                 <td data-label="Rating">
-                    @book.Rating
+                    @if (book.Rating == 0)
+                    {
+                        WriteLiteral("-");
+                    }
+                    else
+                    {
+                        @book.Rating
+                    }
                 </td>
             </tr>
         }
