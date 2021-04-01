@@ -203,6 +203,9 @@ module Audiobook =
     let containsString pattern (a: Audiobook) =
         a |> properties |> List.exists (String.contains pattern)
         
+    let containsStringCaseInsensitive pattern (a: Audiobook) =
+        a |> properties |> List.map (fun s -> s.ToLower()) |> List.exists (String.contains pattern)
+        
     let isSameSource (a: Audiobook) (b: Audiobook) : bool =
         match a.Source, b.Source with
         | SingleFile _, MultiFile _ -> false
