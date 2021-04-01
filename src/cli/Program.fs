@@ -350,7 +350,10 @@ module Program =
     let listFiles libraryFile (config: Config.FilesConfig) =
         result {
             let! library = Library.fromFile libraryFile
-            let! books = config.Ids |> List.traverseResultA (fun id -> Library.findById id library) |> Result.mapError (b0wter.FSharp.String.join "; ")
+            let! books = if config.Ids.IsEmpty then
+                            library.Audiobooks |> Ok
+                         else
+                            config.Ids |> List.traverseResultA (fun id -> Library.findById id library) |> Result.mapError (b0wter.FSharp.String.join "; ")
             
             let filter = match config.ListMissing with
                          | false -> id
