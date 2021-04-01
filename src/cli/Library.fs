@@ -9,7 +9,7 @@ module Library =
     
     type Library = {
         Audiobooks: Audiobook.Audiobook list
-        LastScanned: DateTime
+        LastUpdated: DateTime
         BasePath: string option
     }
     
@@ -27,7 +27,7 @@ module Library =
             else
                 Error e
 
-    let empty = { Audiobooks = []; LastScanned = DateTime.MinValue; BasePath = None }
+    let empty = { Audiobooks = []; LastUpdated = DateTime.MinValue; BasePath = None }
     
     let addTo (l: Library) (a: Audiobook.Audiobook) : Result<Library, string> =
         match l.Audiobooks |> List.tryFind (Audiobook.isSameSource a) with
@@ -40,7 +40,7 @@ module Library =
                 {
                     l with
                         Audiobooks = a :: otherBooks
-                        LastScanned = DateTime.Now
+                        LastUpdated = DateTime.Now
                 } |> Ok
         | None ->
             if l.Audiobooks |> List.map Audiobook.id |> List.contains a.Id then Error "The audiobook could not be added to the library because its id is already taken."
@@ -48,7 +48,7 @@ module Library =
                 {
                     l with
                         Audiobooks = a :: l.Audiobooks
-                        LastScanned = DateTime.Now
+                        LastUpdated = DateTime.Now
                 } |> Ok
                 
     let addBook a l = addTo l a
