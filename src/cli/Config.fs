@@ -135,13 +135,13 @@ module Config =
     }
     
     type FilesConfig = {
-        Id: int
+        Ids: int list
         Separator: FileListingSeparator
         ListMissing: bool
     }
     
     let private emptyFilesConfig = {
-        Id = -1
+        Ids = []
         Separator = NewLine
         ListMissing = false
     }
@@ -248,7 +248,7 @@ module Config =
         
     let applyFilesArg (config: FilesConfig) (f: FilesArgs) : FilesConfig =
         match f with
-        | Id id -> { config with Id = id }
+        | Ids ids -> { config with Ids = ids }
         | Separator s -> { config with Separator = s }
         | Missing -> { config with ListMissing = true }
         

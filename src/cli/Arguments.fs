@@ -63,13 +63,13 @@ module Arguments =
         | NewLine
                 
     type FilesArgs =
-        | [<MainCommand>] Id of int
+        | [<MainCommand>] Ids of int list
         | [<AltCommandLine("-s")>] Separator of FileListingSeparator
         | Missing
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
-                | Id _ -> "Id of the audiobook whose files you want to list. Use the `list` command to find ids."
+                | Ids _ -> "Ids of the audiobooks whose files you want to list. Use the `list` command to find ids."
                 | Separator _ -> "Define the separator for listing multiple files. Defaults to 'newline'. Possible values are: 'space' and 'newline'."
                 | Missing -> "Does not print the name of the files but lists all missing files (meaning files that are listed in the library but that do not exist on disk)."
 

@@ -350,11 +350,12 @@ module Program =
     let listFiles libraryFile (config: Config.FilesConfig) =
         result {
             let! library = Library.fromFile libraryFile
-            let! book = Library.findById config.Id library
+            let! books = config.Ids |> List.traverseResultA (fun id -> Library.findById id library) |> Result.mapError (b0wter.FSharp.String.join "; ")
             
-            let files = match config.ListMissing with
-                        | false -> book |> Audiobook.allFiles |> List.map (sprintf "\"%s\"")
-                        | true -> book |> Audiobook.allFiles |> List.filter (IO.fileDoesNotExist) |> List.map (sprintf "\"%s\"")
+            let filter = match config.ListMissing with
+                         | false -> id
+                         | true -> List.filter (IO.fileDoesNotExist)
+            let files = books |> List.collect (fun book -> book |> Audiobook.allFiles |> filter |> List.map (sprintf "\"%s\""))
             
             let separator = match config.Separator with
                             | Arguments.FileListingSeparator.Space -> " "
