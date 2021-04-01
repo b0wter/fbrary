@@ -97,4 +97,7 @@ module IO =
                 step ()
         step ()
         
-            
+    let fileExists (filename: string) : bool =
+        File.Exists(filename)
+        
+    let fileDoesNotExist = fileExists >> not

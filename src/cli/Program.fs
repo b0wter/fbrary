@@ -349,7 +349,11 @@ module Program =
         result {
             let! library = Library.fromFile libraryFile
             let! book = Library.findById config.Id library
-            let files = book |> Audiobook.allFiles |> List.map (sprintf "\"%s\"")
+            
+            let files = match config.ListMissing with
+                        | false -> book |> Audiobook.allFiles |> List.map (sprintf "\"%s\"")
+                        | true -> book |> Audiobook.allFiles |> List.filter (IO.fileDoesNotExist) |> List.map (sprintf "\"%s\"")
+            
             let separator = match config.Separator with
                             | Arguments.FileListingSeparator.Space -> " "
                             | Arguments.FileListingSeparator.NewLine -> Environment.NewLine

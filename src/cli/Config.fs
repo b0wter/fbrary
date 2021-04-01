@@ -137,11 +137,13 @@ module Config =
     type FilesConfig = {
         Id: int
         Separator: FileListingSeparator
+        ListMissing: bool
     }
     
     let private emptyFilesConfig = {
         Id = -1
         Separator = NewLine
+        ListMissing = false
     }
     
     type UnmatchedConfig = {
@@ -248,6 +250,7 @@ module Config =
         match f with
         | Id id -> { config with Id = id }
         | Separator s -> { config with Separator = s }
+        | Missing -> { config with ListMissing = true }
         
     let applyWriteArg (config: WriteConfig) (w: WriteArgs) : WriteConfig =
         match w with
