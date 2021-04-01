@@ -4,6 +4,13 @@ This is a simple CLI tool that allows you to manage your audio book library.
 
 ![Example using the table formatter](https://raw.githubusercontent.com/b0wter/fbrary/master/example.png)
 
+Updating from version 1.x
+=========================
+In case you have an old library files from a previous version you need run the `migrate` command to update your library file to the current standard:
+```bash
+./fbrary -l $LIBRARY_FILENAME migrate
+```
+
 Commands
 ========
 The application is run in a style similar to `git`. There are several commands to manipulate/list your library.

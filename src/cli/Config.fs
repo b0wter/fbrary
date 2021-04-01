@@ -174,6 +174,7 @@ module Config =
         | Files of FilesConfig
         | Uninitialized
         | Write of WriteConfig
+        | Migrate
         | Version
     
     type Config = {
@@ -316,6 +317,8 @@ module Config =
                               | _ -> emptyWriteConfig
             let updatedWriteConfig = w.GetAllResults() |> List.fold applyWriteArg writeConfig
             { config with Command = Write updatedWriteConfig }
+        | MainArgs.Migrate ->
+            { config with Command = Migrate }
         | MainArgs.Version ->
             { config with Command = Version }
             

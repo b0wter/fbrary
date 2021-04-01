@@ -380,6 +380,42 @@ module Program =
             return 0
         }
         
+    let migrateLibrary (libraryFile: string) =
+        result {
+            // Make sure the config no longer uses the `LastScanned` field.
+            do printfn "Making sure the `LastScanned` field is replaced with `LastUpdated`."
+            let! content = IO.readTextFromFile libraryFile
+            let updatedContent = content.Replace("\"LastScanned\": \"", "\"LastUpdated\": \"")
+            let! library = Library.deserialize updatedContent
+            let updatedLibrary = { library with LastUpdated = DateTime.Now }
+            
+            // Update paths in the config to be absolute.
+            do printfn "Making sure the sources use absolute paths."
+            let rootPath = Path.GetDirectoryName libraryFile
+            let rootPath = Path.Combine(Environment.CurrentDirectory, rootPath)
+            let updateSource (book: Audiobook.Audiobook) : Audiobook.Audiobook =
+                do printfn "Migrating relative path to use the root '%s'." rootPath
+                let combinator (rootPath: string) (filename: string) =
+                    if filename.StartsWith(rootPath) then
+                        do printfn "Skipping '%s' because it already starts with the root path." filename
+                        filename
+                    else
+                        let updated = Path.Combine(rootPath, filename)
+                        do printfn "Updated '%s' to '%s'." filename updated
+                        updated
+                    
+                let configuredCombinator = combinator rootPath
+                let updatedSource = match book.Source with
+                                    | Audiobook.AudiobookSource.SingleFile f ->
+                                        configuredCombinator f |> Audiobook.AudiobookSource.SingleFile
+                                    | Audiobook.AudiobookSource.MultiFile m ->
+                                        m |> List.map configuredCombinator |> Audiobook.AudiobookSource.MultiFile 
+                { book with Source = updatedSource }
+            let updatedFilesLibrary = { library with Audiobooks = updatedLibrary.Audiobooks |> List.map updateSource }
+            do! updatedFilesLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return 0
+        }
+        
     [<EntryPoint>]
     let main argv =
         let r = result {
@@ -420,6 +456,8 @@ module Program =
                 return 1
             | Config.Write writeConfig ->
                 return! write config.LibraryFile writeConfig
+            | Config.Migrate ->
+                return! migrateLibrary config.LibraryFile
             | Config.Version ->
                 do printfn "%s" Version.current
                 return 0
