@@ -146,9 +146,11 @@ module Program =
         let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
         let completedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.Completed
         let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.NotCompleted
-        let filterPredicate (pattern: string) = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsString (pattern.ToLower())
+        let filterPredicate (pattern: string) = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsStringCaseInsensitive (pattern.ToLower())
         let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
                           else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
+        
+        // TODO: predicates should be created while parsing the cli arguments so that a second pass is not necessary
         let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted, listConfig.Completed with
                          | "", false, false, false -> [ fun _ -> true ]
                          | "", true, false, false -> [ unratedPredicate ]
@@ -402,8 +404,10 @@ module Program =
             | Config.Aborted abortedConfig ->
                 return! completedStatus config.LibraryFile abortedConfig.Ids Audiobook.State.Aborted
             | Config.Files filesConfig ->
+                // TODO: move printing into `listFiles`.
                 let! string = listFiles config.LibraryFile filesConfig
-                do printfn "%s" string
+                if String.IsNullOrWhiteSpace(string) then ()
+                else do printfn "%s" string
                 return 0
             | Config.Unmatched unmatchedConfig ->
                 return! unmatched config.LibraryFile unmatchedConfig
