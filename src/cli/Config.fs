@@ -308,7 +308,7 @@ module Config =
                              | _ -> emptyListConfig
             let updatedListConfig = l.GetAllResults() |> List.fold applyListArg listConfig
             let formatters = if updatedListConfig.Formats.IsEmpty then [ ListFormat.Cli Formatter.CommandLine.defaultFormatString ]
-                             else listConfig.Formats |> List.rev
+                             else updatedListConfig.Formats |> List.rev
             let updatedListConfig = { updatedListConfig with Formats = formatters }
             { config with Command = List updatedListConfig }
         | MainArgs.Write w ->
