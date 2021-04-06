@@ -86,22 +86,33 @@ module Config =
         | _ -> 
             failwithf "The field '%s' is unknown." field
                
+    type ListRatedConfig =
+        | Any
+        | Rated
+        | Unrated
+        
+    type ListCompletedConfig =
+        | Any
+        | Completed
+        | NotCompleted
+        | Aborted
+    
     type ListConfig = {
-        Filter: string 
+        Filter: string option
         Ids: int list
         Formats: ListFormat list
         Sort: SortConfig 
-        Unrated: bool
-        NotCompleted: bool
+        Rating: ListRatedConfig
+        Completion: ListCompletedConfig
         Completed: bool
     }
     let private emptyListConfig = {
-        Filter = String.Empty
+        Filter = None
         Formats = []
         Sort = (fun books -> books |> List.sortBy (fun b -> b.Id))
         Ids = []
-        Unrated = false
-        NotCompleted = false
+        Rating = ListRatedConfig.Any
+        Completion = ListCompletedConfig.Any
         Completed = false
     }
     
@@ -225,11 +236,33 @@ module Config =
                                                 | ListFormat.Cli   f -> ListFormat.Cli f
                                                 | ListFormat.Html  (i, o) -> ListFormat.Html (i, o))
             { config with Formats = formats }
-        | Filter filter -> { config with Filter = filter }
+        | Filter filter -> { config with Filter = Some filter }
         | ListArgs.Ids ids -> { config with Ids = ids }
-        | ListArgs.NotCompleted -> { config with NotCompleted = true }
-        | ListArgs.Completed -> { config with Completed = true }
-        | Unrated -> { config with Unrated = true }
+        | ListArgs.NotCompleted ->
+            if config.Completion <> ListCompletedConfig.Any then
+                do printfn "You have defined more than one completion parameter. Only the last will be used. Current: %A, new: %A" config.Completion ListCompletedConfig.NotCompleted
+            else ()
+            { config with Completion = ListCompletedConfig.NotCompleted }
+        | ListArgs.Completed ->
+            if config.Completion <> ListCompletedConfig.Any then
+                do printfn "You have defined more than one completion parameter. Only the last will be used. Current: %A, new: %A" config.Completion ListCompletedConfig.Completed
+            else ()
+            { config with Completion = ListCompletedConfig.Completed }
+        | ListArgs.Aborted ->
+            if config.Completion <> ListCompletedConfig.Any then
+                do printfn "You have defined more than one completion parameter. Only the last will be used. Current: %A, new: %A" config.Completion ListCompletedConfig.Aborted
+            else ()
+            { config with Completion = ListCompletedConfig.Aborted }
+        | ListArgs.Rated ->
+            if config.Rating <> ListRatedConfig.Any then
+                do printfn "You have defined more than one rating parameter. Only the last will be used. Current: %A, new %A" config.Rating ListRatedConfig.Rated
+            else ()
+            { config with Rating = ListRatedConfig.Rated }
+        | ListArgs.Unrated ->
+            if config.Rating <> ListRatedConfig.Any then
+                do printfn "You have defined more than one rating parameter. Only the last will be used. Current: %A, new %A" config.Rating ListRatedConfig.Unrated
+            else ()
+            { config with Rating = ListRatedConfig.Unrated }
         | Sort fields ->
             let linqSorter = fields |> List.fold (fun (accumulator: Sorter option) next -> Some (applySortField accumulator next)) None
             let sorter = match linqSorter with

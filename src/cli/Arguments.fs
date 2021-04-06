@@ -32,9 +32,11 @@ module Arguments =
         | [<AltCommandLine("-s"); Unique>] Sort of string list
         | [<CustomCommandLine("--max-col-width"); AltCommandLine("-w"); Unique>] MaxTableColumnWidth of int
         | [<Unique>] Ids of int list
+        | [<Unique>] Rated
         | [<Unique>] Unrated
         | [<Unique>] NotCompleted
         | [<Unique>] Completed
+        | [<Unique>] Aborted
         interface IArgParserTemplate with
             member s.Usage =
                 match s with
@@ -45,9 +47,11 @@ module Arguments =
                 | Sort _ -> sprintf "Define the order in which the books are sorted. You can supply multiple parameters and the books will be sorted by all of them in order. The default sort order is ascending. To sort descending add `:d` to the field name (e.g. \"album:d\"). You can use any of the placeholder fields: '%s'" formattedFieldList
                 | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
                 | Ids _ -> "Only list audio books with the given ids."
+                | Rated -> "Only list books that have been rated."
                 | Unrated -> "Only list books that have not yet been rated."
                 | NotCompleted -> "Only list books that have not yet been completely listened to."
                 | Completed -> "Only list books that have been completely listened to."
+                | Aborted -> "Only list books that have been marked as aborted."
                 
     type UpdateArgs =
         | [<MainCommand>] Ids of int list

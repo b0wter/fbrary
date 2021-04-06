@@ -22,7 +22,7 @@ sed -i "s/[[:digit:]]\+.[[:digit:]]\+.[[:digit:]]\+/$NUMERIC_VERSION/" Version.f
 # Create binaries. Replace this with your own script.
 #
 mkdir -p out
-rm out/*
+rm -rf out/*
 
 # The following command combines everything into a single file but is currently
 # not in use because it breaks RazorLight.

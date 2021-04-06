@@ -7,7 +7,7 @@
     <AssemblyName>fbrary</AssemblyName>
     <PreserveCompilationContext>true</PreserveCompilationContext>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <Compile Include="Version.fs" />
     <Compile Include="Utilities.fs" />

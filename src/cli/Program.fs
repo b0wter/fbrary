@@ -143,31 +143,32 @@ module Program =
         }
         
     let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
-        let unratedPredicate = fun (a: Audiobook.Audiobook) -> a.Rating = None
-        let completedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.Completed
-        let notCompletedPredicate = fun (a: Audiobook.Audiobook) -> a.State = Audiobook.State.NotCompleted
-        let filterPredicate (pattern: string) = fun (a: Audiobook.Audiobook) -> a |> Audiobook.containsStringCaseInsensitive (pattern.ToLower())
-        let idPredicate = if listConfig.Ids.IsEmpty then (fun _ -> true)
-                          else fun (a: Audiobook.Audiobook) -> listConfig.Ids |> List.contains a.Id
         
-        // TODO: predicates should be created while parsing the cli arguments so that a second pass is not necessary
-        let predicates = match listConfig.Filter, listConfig.Unrated, listConfig.NotCompleted, listConfig.Completed with
-                         | "", false, false, false -> [ fun _ -> true ]
-                         | "", true, false, false -> [ unratedPredicate ]
-                         | "", false, true, false -> [ notCompletedPredicate ]
-                         | "", true, true, false -> [ unratedPredicate; notCompletedPredicate ]
-                         | s, false, false, false -> [ filterPredicate s ]
-                         | s, true, false, false -> [ filterPredicate s; unratedPredicate ]
-                         | s, false, true, false -> [ filterPredicate s; notCompletedPredicate ]
-                         | s, true, true, false -> [ filterPredicate s; unratedPredicate; notCompletedPredicate ]
-                         | "", true, false, true -> [ unratedPredicate; completedPredicate ]
-                         | "", false, true, true -> [ notCompletedPredicate; completedPredicate ]
-                         | "", true, true, true -> [ unratedPredicate; notCompletedPredicate; completedPredicate ]
-                         | s, false, false, true -> [ filterPredicate s; completedPredicate ]
-                         | s, true, false, true -> [ filterPredicate s; unratedPredicate; completedPredicate ]
-                         | s, false, true, true -> [ filterPredicate s; notCompletedPredicate; completedPredicate ]
-                         | s, true, true, true -> [ filterPredicate s; unratedPredicate; notCompletedPredicate; completedPredicate ]
-        let combinedPredicate a = List.forall (fun p -> a |> p) (idPredicate :: predicates)
+        // Should the predicates be defined while parsing the cli arguments?
+        
+        let ratingPredicate =
+            match listConfig.Rating with
+            | Config.ListRatedConfig.Any -> None
+            | Config.ListRatedConfig.Rated -> Some (fun (b: Audiobook.Audiobook) -> (b |> Audiobook.rating).IsSome)
+            | Config.ListRatedConfig.Unrated -> Some (fun (b: Audiobook.Audiobook) -> (b |> Audiobook.rating).IsNone)
+            
+        let completionPredicate =
+            match listConfig.Completion with
+            | Config.ListCompletedConfig.Any -> None
+            | Config.ListCompletedConfig.Aborted -> Some (fun (b: Audiobook.Audiobook) -> (b |> Audiobook.state) = Audiobook.State.Aborted)
+            | Config.ListCompletedConfig.Completed -> Some (fun (b: Audiobook.Audiobook) -> (b |> Audiobook.state) = Audiobook.State.Completed)
+            | Config.ListCompletedConfig.NotCompleted -> Some (fun (b: Audiobook.Audiobook) -> (b |> Audiobook.state) = Audiobook.State.NotCompleted)
+        
+        let filterPredicate =
+            match listConfig.Filter with
+            | Some s when String.IsNullOrWhiteSpace(s) -> None
+            | None -> None
+            | Some s -> Some (fun (b: Audiobook.Audiobook) -> b |> Audiobook.containsStringCaseInsensitive (s.ToLower()))
+            
+        let predicates = [ ratingPredicate; completionPredicate; filterPredicate ]
+                         |> List.choose id
+                         
+        let combinedPredicate a = List.forall (fun p -> a |> p) predicates
         
         result {
             match! readLibraryIfExisting libraryFile with
@@ -437,11 +438,11 @@ module Program =
                 return! update config.LibraryFile updateConfig
             | Config.Rate rateConfig ->
                 return! rate config.LibraryFile rateConfig.Id
-            | Config.Completed completedConfig ->
+            | Config.Command.Completed completedConfig ->
                 return! completedStatus config.LibraryFile completedConfig.Ids Audiobook.State.Completed
-            | Config.NotCompleted notCompletedConfig ->
+            | Config.Command.NotCompleted notCompletedConfig ->
                 return! completedStatus config.LibraryFile notCompletedConfig.Ids Audiobook.State.NotCompleted
-            | Config.Aborted abortedConfig ->
+            | Config.Command.Aborted abortedConfig ->
                 return! completedStatus config.LibraryFile abortedConfig.Ids Audiobook.State.Aborted
             | Config.Files filesConfig ->
                 // TODO: move printing into `listFiles`.
