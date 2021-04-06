@@ -47,7 +47,15 @@ module Config =
     type SortConfig = Audiobook.Audiobook list -> Audiobook.Audiobook list
     type private Sorter = Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>> -> IOrderedEnumerable<Audiobook.Audiobook>
     
-    let applySortField (f: Sorter option) (field: string) = //: Sorter =
+    let postProcessSortFields (fields: string list) =
+        let allowedNames = [ "id"; "artist"; "albumartist"; "album"; "title"; "genre"; "duration"; "rating"; "completed" ]
+        let nonMatching = fields |> List.filter (fun f -> allowedNames |> List.contains f |> not)
+        if nonMatching.IsEmpty then
+            fields
+        else
+            failwithf "The following fields are unknown: %s" (String.Join(", ", nonMatching))
+    
+    let applySortField (f: Sorter option) (field: string) =
         let sortOrder = if field.Contains(":d") then SortOrder.Descending else SortOrder.Ascending
         let sorter (books: Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>>)
                 : Func<Audiobook.Audiobook, 'b> -> IOrderedEnumerable<Audiobook.Audiobook> =
@@ -357,8 +365,16 @@ module Config =
             
     let applyAllArgs (results: ParseResults<MainArgs>) =
         //
+        // This is hacky but makes sure that argu checks that the field names for the sort parameter are valid.
+        // Is only possible in this function because a reference of the `ParseResults<...>` is required.
+        // All subsequent functions work on the extracted results.
+        //
+        let _ = results.TryGetResult(<@ MainArgs.List @>) |> Option.map (fun r -> r.TryPostProcessResult(<@ ListArgs.Sort @>, postProcessSortFields))
+        
+        //
         // This is rather hacky but it makes sure that Argu checks the library parameter
         // if the command is not the version command.
+        // Limitation of argu or my knowledge :)
         //
         let args = results.GetAllResults ()
         if args |> List.exists (function MainArgs.Version -> true | _ -> false) then

@@ -4,4 +4,4 @@ module Version =
     
     // This version is updated automatically by the `publish` command.
     // The script only works if the version number consists of three numbers separated by dots.
-    let current = "2.0.1"
+    let current = "2.1"
