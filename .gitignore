@@ -41,3 +41,4 @@ msbuild.wrn
 appsettings.*.json
 
 .fake
+*.snap

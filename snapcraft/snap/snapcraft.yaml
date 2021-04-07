@@ -1,0 +1,43 @@
+name: fbrary
+base: core20
+version: '2.1.1' 
+summary: Manage your audio book library from the command line.
+description: |
+  Use this tool to manage your audiobook library from the
+  command line. You can can add/list/rate books and mark
+  them as completed. The library can be exported in a
+  cli friendly format as well as html.
+  This snap is using strict confinement meaning that you
+  can only access files in your home folder. If your 
+  collection of audio books is stored somewhere else you
+  can use a bind mount to make them available to the snap.
+  Like
+    mkdir /home/you/audiobooks
+    sudo mount --bind /storage/audiobooks /home/you/audiobooks/
+grade: stable 
+confinement: strict 
+
+plugs:
+  home-folder-access:
+    interface: home
+  media-access:
+    interface: removable-media
+
+
+parts:
+  cli:
+    # See 'snapcraft plugins'
+    plugin: dump
+    source: build
+    source-type: local
+    stage-packages:
+      - liblttng-ust0
+      - libicu66
+
+apps:
+  fbrary:
+    command: fbrary
+    plugs:
+    - home-folder-access
+    - media-access
+
