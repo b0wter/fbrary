@@ -4,6 +4,27 @@ This is a simple CLI tool that allows you to manage your audio book library.
 
 ![Example using the table formatter](https://raw.githubusercontent.com/b0wter/fbrary/master/example.png)
 
+Installation
+============
+There are several ways to install this app.
+
+Binary releases
+--------------- 
+On the [releases page](https://github.com/b0wter/fbrary/releases) there are versions for Linux, OSX and Windows. Each version comes in two flavors: `self_contained` which does not require the installation of the dotnet core runtime 5.0 and the `dotnet_core_required` version that requires the runtime to be present.
+
+Snap
+----
+You can find fbrary on the [snap store](https://snapcraft.io/fbrary). The snap is run in strict mode meaning it is sandboxed properly but can only access files inside your home folder or on removeable media. If you want to use the snap but also want to use access arbitrary folders you can use a bind mount loke this:
+```
+mkdir /home/your_username/audiobooks
+sudo mount --bind /storage/audiobooks /home/your_username/audiobooks/
+```
+To make this change permanent you can edit your `/etc/fstab`:
+```
+# <file system> <mount point>   <type>  <options>       <dump>  <pass>
+/storage/audiobooks        /home/your_username/audiobooks   auto    bind    0   3
+```
+
 Updating from version 1.x
 =========================
 In case you have an old library files from a previous version you need run the `migrate` command to update your library file to the current standard:
