@@ -73,6 +73,8 @@ module Program =
         else
             Error <| sprintf "The given path '%s' does not exist." path
             
+    // TODO: consolidate all the different ways to read/create a library        
+    
     let private readLibraryOr (ifNotExisting: unit -> Library.Library) (filename: string) : Result<Library.Library, string> =
         if File.Exists(filename) then
             (IO.readTextFromFile filename) |> Result.bind Library.deserialize
@@ -80,6 +82,14 @@ module Program =
             Error "The given path is a directory not a file."
         else
             ifNotExisting () |> Ok
+            
+    let private readLibraryOrError filename = 
+        if File.Exists(filename) then
+            (IO.readTextFromFile filename) |> Result.bind Library.deserialize
+        elif Directory.Exists(filename) then
+            Error "The given path is a directory not a file."
+        else
+            Error (sprintf "The library file '%s' does not exist." filename)
         
     let readOrCreateLibrary = 
         readLibraryOr (fun () -> Library.empty)
@@ -118,31 +128,29 @@ module Program =
             do counter <- (counter + 1)
             counter
             
-    let add (library: Library.Library) (idGenerator: (unit -> int)) (addConfig: Config.AddConfig) (config: Config.Config) : Result<int, string> =
+    let add (addConfig: Config.AddConfig) (config: Config.Config) (library: Library.Library) : Result<Library.Library, string> =
         result {
+            let idGenerator = idGenerator library
             let! audiobooks = addPath addConfig addConfig.Path idGenerator
             
             let folder = fun (lib: Result<Library.Library, string>) (book: Audiobook.Audiobook) ->
                 lib |> Result.bind (Library.addBook book)
-            let! updatedLibrary = audiobooks |> List.fold folder (Ok library)
-            
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile config.LibraryFile
-            return 0
+                
+            return! audiobooks |> List.fold folder (Ok library)
         }
             
-    let remove (libraryFile: string) (removeConfig: Config.RemoveConfig) : Result<int, string> =
+    let remove (removeConfig: Config.RemoveConfig) (library: Library.Library) : Result<Library.Library, string> =
         result {
-            let! library = Library.fromFile libraryFile
             let! audiobook = library |> Library.findById removeConfig.Id
             let updatedLibrary = library |> Library.removeBook audiobook
+            // TODO: remove `if`
             if updatedLibrary.Audiobooks.Length = library.Audiobooks.Length then
                 do printfn "No audio book has the id '%i'. The library has not been modified." removeConfig.Id
-            else
-                do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
-            return 0
+            else ()
+            return updatedLibrary
         }
         
-    let list (libraryFile: string) (listConfig: Config.ListConfig) : Result<int, string> =
+    let list (listConfig: Config.ListConfig) (library: Library.Library) : Result<unit, string> =
         
         // Should the predicates be defined while parsing the cli arguments?
         
@@ -171,17 +179,12 @@ module Program =
         let combinedPredicate a = List.forall (fun p -> a |> p) predicates
         
         result {
-            match! readLibraryIfExisting libraryFile with
-            | Some l ->
-                let filtered = l.Audiobooks |> List.filter combinedPredicate
-                do if filtered.IsEmpty then do printfn "Found no matching audio books."
-                   else do
-                       listConfig.Formats
-                       |> List.collect (fun format -> formatAudiobook format listConfig.Sort filtered)
-                       |> List.iter Console.WriteLine
-                return 0
-            | None ->
-                return! (Error "The given library file does not exist. There is nothing to list.")
+            let filtered = library.Audiobooks |> List.filter combinedPredicate
+            do if filtered.IsEmpty then do printfn "Found no matching audio books."
+               else do
+                   listConfig.Formats
+                   |> List.collect (fun format -> formatAudiobook format listConfig.Sort filtered)
+                   |> List.iter Console.WriteLine
         }
         
     let updateInteractively (library: Library.Library) (id: int) : Result<Library.Library, string> =
@@ -245,9 +248,8 @@ module Program =
             return! library |> Library.updateBook updatedBook
         }
         
-    let update (libraryFile: string) (updateConfig: Config.UpdateConfig) =
+    let update (updateConfig: Config.UpdateConfig) (library: Library.Library) =
         result {
-            let! library = Library.fromFile libraryFile
             let! updatedLibrary =
                 match updateConfig.Fields with
                 | [] ->
@@ -255,11 +257,10 @@ module Program =
                 | fields ->
                     let updateField (field, value) library = updateConfig.Ids |> List.foldResult (fun accumulator -> updateSingleField accumulator field value) library
                     List.foldResult (fun accumulator next -> updateField next accumulator) library fields
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
-            return 0
+            return updatedLibrary
         }
         
-    let rate (libraryFile: string) (bookId: int option) : Result<int, string> =
+    let rate (rateConfig: Config.RateConfig) (library: Library.Library) : Result<Library.Library, string> =
             
         let rateSingleBook (a: Audiobook.Audiobook) : Audiobook.Audiobook =
             let input () : Rating.Rating option =
@@ -293,9 +294,7 @@ module Program =
             { a with Rating = rating }
             
         result {
-            let! library = Library.fromFile libraryFile
-            
-            let predicate = match bookId with
+            let predicate = match rateConfig.Id with
                             | Some i -> fun (a: Audiobook.Audiobook) -> a.Id = i
                             | None -> fun (a: Audiobook.Audiobook) -> a.Rating = None
                             
@@ -306,28 +305,24 @@ module Program =
                 let mergedBooks = (updatedBooks @ books.NonMatching) |> List.sortBy (fun a -> a.Id)
                 
                 let updatedLibrary = { library with Audiobooks = mergedBooks }
-                do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+                return updatedLibrary
             else
-                let text = match bookId with
+                let text = match rateConfig.Id with
                            | Some i -> sprintf "There is no book with the id '%i'." i
                            | None -> sprintf "All books have ratings. If you want to change a rating please specify a book id."
-                do printfn "%s" text                  
-            return 0
+                do printfn "%s" text
+                return library
         }
         
-    let completedStatus libraryFile ids status = 
+    let completedStatus ids status library = 
         result {
-            let! library = Library.fromFile libraryFile
             let! books = Library.findByIds ids library
             let updatedBooks = books |> List.map (Audiobook.withCompletionStatus status)
-            let! updatedLibrary = Library.updateBooks updatedBooks library
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
-            return 0
+            return! Library.updateBooks updatedBooks library
         }
         
-    let unmatched libraryFile (config: Config.UnmatchedConfig) =
+    let unmatched (config: Config.UnmatchedConfig) libraryFile (library: Library.Library) =
         result {
-            let! library = Library.fromFile libraryFile
             let libraryFileDirectory = Path.GetDirectoryName(Path.GetFullPath(libraryFile))
             // The `GetFullPath` is required because `Path.Join` may result in paths like this:
             //   /foo/bar/./my_file.mp3
@@ -342,10 +337,8 @@ module Program =
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."
-                return 0
             else
                 do missingFiles |> List.iter Console.WriteLine
-                return 0
         }
         
     let listFiles libraryFile (config: Config.FilesConfig) =
@@ -367,7 +360,7 @@ module Program =
             return files |> b0wter.FSharp.String.join separator
         }
         
-    let write libraryFile (writeConfig: Config.WriteConfig) =
+    let write (writeConfig: Config.WriteConfig) (library: Library.Library) =
         let bookToMetadata (book: Audiobook.Audiobook) : Metadata.Metadata list =
             let files = book |> Audiobook.allFiles
             files |> List.map (fun file ->
@@ -375,13 +368,11 @@ module Program =
                 )
             
         result {
-            let! library = Library.fromFile libraryFile
             let metadata = library.Audiobooks |> List.collect bookToMetadata
             do! metadata |> List.map (TagLib.writeMetaData writeConfig) |> List.sequenceResultM |> Result.map ignore
-            return 0
         }
         
-    let migrateLibrary (libraryFile: string) =
+    let migrateLibrary (libraryFile: string) _ =
         result {
             // Make sure the config no longer uses the `LastScanned` field.
             do printfn "Making sure the `LastScanned` field is replaced with `LastUpdated`."
@@ -414,58 +405,80 @@ module Program =
                 { book with Source = updatedSource }
             let updatedFilesLibrary = { library with Audiobooks = updatedLibrary.Audiobooks |> List.map updateSource }
             do! updatedFilesLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
-            return 0
+        }
+        
+    let private parseCommandLineArguments argv =
+        let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
+        let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
+        (parser, parser.ParseCommandLine(inputs = argv, raiseOnUsage = true))
+        
+    let runOnExistingAndSave libraryFile (f: Library.Library -> Result<Library.Library, string>) =
+        result {
+            let! library = readLibraryOrError libraryFile
+            let! updatedLibrary = f library 
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+        }
+        
+    let runOnExistingOrNewAndSave libraryFile (f: Library.Library -> Result<Library.Library, string>) =
+        result {
+            let! library = readOrCreateLibrary libraryFile
+            let! updatedLibrary = f library 
+            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+        }
+        
+    let runOnExisting libraryFile (f: Library.Library -> Result<'a, string>) =
+        result {
+            let! library = readOrCreateLibrary libraryFile
+            return! f library
         }
         
     [<EntryPoint>]
     let main argv =
+        
         let r = result {
-            let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
-            let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
-            let results = parser.ParseCommandLine(inputs = argv, raiseOnUsage = true)
+            let parser, results = parseCommandLineArguments argv
             let config = Config.applyAllArgs results
+            
+            let runOnExistingAndSave = runOnExistingAndSave config.LibraryFile
+            let runOnExistingOrNewAndSave = runOnExistingOrNewAndSave config.LibraryFile
+            let runOnExisting = runOnExisting config.LibraryFile
             
             match config.Command with
             | Config.Add addConfig ->
-                let! library = readOrCreateLibrary config.LibraryFile
-                let idGenerator = idGenerator library
-                return! add library idGenerator addConfig config
+                return! (runOnExistingOrNewAndSave (add addConfig config))
             | Config.List listConfig ->
-                return! list config.LibraryFile listConfig
+                return! (runOnExisting (list listConfig))
             | Config.Remove removeConfig ->
-                return! remove config.LibraryFile removeConfig
+                return! (runOnExistingAndSave (remove removeConfig))
             | Config.Update updateConfig ->
-                return! update config.LibraryFile updateConfig
+                return! (runOnExistingAndSave (update updateConfig))
             | Config.Rate rateConfig ->
-                return! rate config.LibraryFile rateConfig.Id
+                return! (runOnExistingAndSave (rate rateConfig))
             | Config.Command.Completed completedConfig ->
-                return! completedStatus config.LibraryFile completedConfig.Ids Audiobook.State.Completed
+                return! (runOnExistingAndSave (completedStatus completedConfig.Ids Audiobook.State.Completed))
             | Config.Command.NotCompleted notCompletedConfig ->
-                return! completedStatus config.LibraryFile notCompletedConfig.Ids Audiobook.State.NotCompleted
+                return! (runOnExistingAndSave (completedStatus notCompletedConfig.Ids Audiobook.State.NotCompleted))
             | Config.Command.Aborted abortedConfig ->
-                return! completedStatus config.LibraryFile abortedConfig.Ids Audiobook.State.Aborted
+                return! (runOnExistingAndSave (completedStatus abortedConfig.Ids Audiobook.State.Aborted))
             | Config.Files filesConfig ->
-                // TODO: move printing into `listFiles`.
+                // TODO:  move to its own function
                 let! string = listFiles config.LibraryFile filesConfig
                 if String.IsNullOrWhiteSpace(string) then ()
                 else do printfn "%s" string
-                return 0
             | Config.Unmatched unmatchedConfig ->
-                return! unmatched config.LibraryFile unmatchedConfig
+                return! (runOnExisting (unmatched unmatchedConfig config.LibraryFile))
             | Config.Uninitialized ->
                 do printfn "%s" (parser.PrintUsage())
-                return 1
             | Config.Write writeConfig ->
-                return! write config.LibraryFile writeConfig
+                return! (runOnExisting (write writeConfig))
             | Config.Migrate ->
-                return! migrateLibrary config.LibraryFile
+                return! (runOnExisting (migrateLibrary config.LibraryFile))
             | Config.Version ->
                 do printfn "%s" Version.current
-                return 0
         }
         
         match r with
-        | Ok statusCode -> statusCode
+        | Ok _ -> 0
         | Error e ->
             printfn "%s" e
             1
