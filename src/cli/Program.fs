@@ -128,7 +128,7 @@ module Program =
             do counter <- (counter + 1)
             counter
             
-    let add (addConfig: Config.AddConfig) (config: Config.Config) (library: Library.Library) : Result<Library.Library, string> =
+    let add (addConfig: Config.AddConfig) (library: Library.Library) : Result<Library.Library, string> =
         result {
             let idGenerator = idGenerator library
             let! audiobooks = addPath addConfig addConfig.Path idGenerator
@@ -445,7 +445,7 @@ module Program =
             
             match config.Command with
             | Config.Add addConfig ->
-                return! (runOnExistingOrNewAndSave (add addConfig config))
+                return! (runOnExistingOrNewAndSave (add addConfig))
             | Config.List listConfig ->
                 return! (runOnExisting (list listConfig))
             | Config.Remove removeConfig ->
@@ -478,7 +478,7 @@ module Program =
         }
         
         match r with
-        | Ok _ -> 0
+        | Ok () -> 0
         | Error e ->
             printfn "%s" e
             1
