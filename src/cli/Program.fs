@@ -461,7 +461,6 @@ module Program =
             | Config.Command.Aborted abortedConfig ->
                 return! (runOnExistingAndSave (completedStatus abortedConfig.Ids Audiobook.State.Aborted))
             | Config.Files filesConfig ->
-                // TODO:  move to its own function
                 let! string = listFiles config.LibraryFile filesConfig
                 if String.IsNullOrWhiteSpace(string) then ()
                 else do printfn "%s" string
