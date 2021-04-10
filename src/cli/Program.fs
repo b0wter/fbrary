@@ -416,14 +416,14 @@ module Program =
         result {
             let! library = readLibraryOrError libraryFile
             let! updatedLibrary = f library 
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
         }
         
     let runOnExistingOrNewAndSave libraryFile (f: Library.Library -> Result<Library.Library, string>) =
         result {
             let! library = readOrCreateLibrary libraryFile
             let! updatedLibrary = f library 
-            do! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
+            return! updatedLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
         }
         
     let runOnExisting libraryFile (f: Library.Library -> Result<'a, string>) =
