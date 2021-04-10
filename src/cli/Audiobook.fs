@@ -217,3 +217,27 @@ module Audiobook =
         match a.Source with
         | SingleFile s -> [ s ]
         | MultiFile m -> m
+        
+    let details (a: Audiobook) : string list =
+        let formatDuration (t: TimeSpan) = t.ToString("h\:mm")
+        let formatBool = function true -> "yes" | false -> "no"
+        let formatState = function State.Aborted -> "aborted" | State.Completed -> "completed" | State.NotCompleted -> "not completed"
+        let formatSources =
+            function
+            | AudiobookSource.SingleFile s -> [ $"Source:       %s{s}" ]
+            | AudiobookSource.MultiFile many ->
+                "Source:" :: (many |> List.map (fun s -> $"\t%s{s}"))
+        let asString = function | Some s -> s | None -> "-"
+        [
+            $"Id:           %i{a.Id}"
+            $"Album:        %s{a.Album |> asString}"
+            $"Album Artist: %s{a.AlbumArtist |> asString}"
+            $"Artist:       %s{a.Artist |> asString}"
+            $"Title:        %s{a.Title |> asString}"
+            $"Duration:     %s{a.Duration |> formatDuration}"
+            $"Rating:       %i{a.Rating |> Option.map (Rating.value) |> Option.getOrElse -1}"
+            $"State:        %s{a.State |> formatState}"
+            $"Genre:        %s{a.Genre |> asString}"
+            $"Comment:      %s{a.Comment |> asString}"
+            $"Has Picture:  %s{a.HasPicture |> formatBool}"
+        ] @ (a.Source |> formatSources)

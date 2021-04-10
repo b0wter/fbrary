@@ -103,6 +103,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
         | [<CliPrefix(CliPrefix.None)>] Migrate
+        | [<CliPrefix(CliPrefix.None)>] Details of int list
         | [<CliPrefix(CliPrefix.DoubleDash); First>] Version
         interface IArgParserTemplate with
             member s.Usage =
@@ -121,5 +122,6 @@ module Arguments =
                 | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
                 | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
                 | Migrate -> "Migrate an old library file to the current format."
+                | Details _ -> "List the complete details (including files) for the given audio books."
                 | Version -> "Echo the version of this software."
                 

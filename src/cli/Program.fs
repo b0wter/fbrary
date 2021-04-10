@@ -51,7 +51,7 @@ module Program =
                          | true, false -> getFilesAsBooks path
                          | false, true -> getSubFoldersAsBooks path
                          | true, true -> getFilesAsBookAndSubFoldersAsBooks path
-            let files = files |> List.map (IO.filterMp3Files) |> List.skipEmpty
+            let files = files |> List.map IO.filterMp3Files |> List.skipEmpty
             return! files |> List.map createBook |> List.sequenceResultM
         }
         
@@ -351,7 +351,7 @@ module Program =
             
             let filter = match config.ListMissing with
                          | false -> id
-                         | true -> List.filter (IO.fileDoesNotExist)
+                         | true -> List.filter IO.fileDoesNotExist
             let files = books |> List.collect (fun book -> book |> Audiobook.allFiles |> filter |> List.map (sprintf "\"%s\""))
             
             let separator = match config.Separator with
@@ -370,6 +370,12 @@ module Program =
         result {
             let metadata = library.Audiobooks |> List.collect bookToMetadata
             do! metadata |> List.map (TagLib.writeMetaData writeConfig) |> List.sequenceResultM |> Result.map ignore
+        }
+        
+    let listDetails (config: Config.DetailsConfig) (library: Library.Library) =
+        result {
+            let! books = library |> Library.findByIds config.Ids
+            do books |> List.iter (Audiobook.details >> List.iter Console.WriteLine)
         }
         
     let migrateLibrary (libraryFile: string) _ =
@@ -463,17 +469,19 @@ module Program =
             | Config.Files filesConfig ->
                 let! string = listFiles config.LibraryFile filesConfig
                 if String.IsNullOrWhiteSpace(string) then ()
-                else do printfn "%s" string
+                else do Console.WriteLine(string)
             | Config.Unmatched unmatchedConfig ->
                 return! (runOnExisting (unmatched unmatchedConfig config.LibraryFile))
             | Config.Uninitialized ->
-                do printfn "%s" (parser.PrintUsage())
+                do Console.WriteLine(parser.PrintUsage())
             | Config.Write writeConfig ->
                 return! (runOnExisting (write writeConfig))
             | Config.Migrate ->
                 return! (runOnExisting (migrateLibrary config.LibraryFile))
+            | Config.Details detailsConfig ->
+                return! (runOnExisting (listDetails detailsConfig))
             | Config.Version ->
-                do printfn "%s" Version.current
+                do Console.WriteLine(Version.current)
         }
         
         match r with

@@ -260,6 +260,13 @@ comment
 ```
 To preview the changes add the `-d` (dry run) parameter.
 
+Details
+-------
+```bash
+./fbrary -l $LIBRARY_FILENAME details 1 2 ...
+```
+Writes all available information to the terminal. Fields that are empty are represented as `-`. A rating of `-1` means that none has been set.
+
 Hints
 =====
 

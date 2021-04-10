@@ -180,6 +180,10 @@ module Config =
         NonInteractive = false
     }
     
+    type DetailsConfig = {
+        Ids: int list
+    }
+    
     type Command
         = Add of AddConfig
         | List of ListConfig
@@ -194,6 +198,7 @@ module Config =
         | Uninitialized
         | Write of WriteConfig
         | Migrate
+        | Details of DetailsConfig
         | Version
     
     type Config = {
@@ -360,6 +365,8 @@ module Config =
             { config with Command = Write updatedWriteConfig }
         | MainArgs.Migrate ->
             { config with Command = Migrate }
+        | MainArgs.Details ids ->
+            { config with Command = Details { Ids = ids } }
         | MainArgs.Version ->
             { config with Command = Version }
             
