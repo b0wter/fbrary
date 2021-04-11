@@ -110,8 +110,7 @@ module IO =
     ///     "/a/../"             -> "/"
     ///     "/a/../.././../../." -> "/"
     ///     "/a/./b/../../c/"    -> "/c"
-    let simplifyPath (input: string) (overrideSeparatorChar: char option) =
-        let separator = match overrideSeparatorChar with None -> Path.DirectorySeparatorChar | Some c -> c
+    let simplifyPath (input: string) =
         let pathRoot = Path.GetPathRoot(input)
         let isAbsolutePath = not <| String.IsNullOrWhiteSpace(pathRoot)
         let input = input.Substring(pathRoot.Length)
