@@ -321,19 +321,12 @@ module Program =
             return! Library.updateBooks updatedBooks library
         }
         
-    let unmatched (config: Config.UnmatchedConfig) libraryFile (library: Library.Library) =
+    let unmatched (config: Config.UnmatchedConfig) (library: Library.Library) =
         result {
-            let libraryFileDirectory = Path.GetDirectoryName(Path.GetFullPath(libraryFile))
-            // The `GetFullPath` is required because `Path.Join` may result in paths like this:
-            //   /foo/bar/./my_file.mp3
-            // which is the same as
-            //  /foo/bar/my_file.mp3
-            // but it's a string comparison so no logic is applied.
             let allLibraryFiles = library.Audiobooks
                                   |> List.collect Audiobook.allFiles
-                                  |> List.map (fun f -> Path.GetFullPath(Path.Join(libraryFileDirectory, f)))
-            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map Path.GetFullPath)
-            
+                                  |> List.map (Path.GetFullPath >> IO.simplifyPath) 
+            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map (Path.GetFullPath >> IO.simplifyPath))
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."
@@ -471,7 +464,7 @@ module Program =
                 if String.IsNullOrWhiteSpace(string) then ()
                 else do Console.WriteLine(string)
             | Config.Unmatched unmatchedConfig ->
-                return! (runOnExisting (unmatched unmatchedConfig config.LibraryFile))
+                return! (runOnExisting (unmatched unmatchedConfig))
             | Config.Uninitialized ->
                 do Console.WriteLine(parser.PrintUsage())
             | Config.Write writeConfig ->
