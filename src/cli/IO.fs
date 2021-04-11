@@ -4,6 +4,7 @@ open System
 open System.IO
 open System.Linq
 open FsToolkit.ErrorHandling
+open System.Collections.Generic
 
 module IO =
     
@@ -101,3 +102,53 @@ module IO =
         File.Exists(filename)
         
     let fileDoesNotExist = fileExists >> not
+    
+    let private singleSeparator = Path.PathSeparator |> string
+    let private doubleSeparator = String(Path.PathSeparator, 2)
+    /// Removes redundant elements from the path (e.g. `..` and `.`).
+    /// Returns an absolute path.
+    ///     "/a/../"             -> "/"
+    ///     "/a/../.././../../." -> "/"
+    ///     "/a/./b/../../c/"    -> "/c"
+    let simplifyPath (input: string) (overrideSeparatorChar: char option) =
+        let separator = match overrideSeparatorChar with None -> Path.DirectorySeparatorChar | Some c -> c
+        let pathRoot = Path.GetPathRoot(input)
+        let isAbsolutePath = not <| String.IsNullOrWhiteSpace(pathRoot)
+        let input = input.Substring(pathRoot.Length)
+        
+        let stack = Stack<string>()
+        do input.Split(Path.DirectorySeparatorChar, StringSplitOptions.RemoveEmptyEntries)
+           |> Array.filter ((<>) ".") // "." entries can be ignored as it means "this folder"
+           |> Array.rev
+           |> Array.iter stack.Push
+        
+        let rec fold (stack: Stack<string>) (result: Stack<string>) =
+            match stack.TryPop() with
+            | false, _ -> result
+            | true, value ->
+                match value with
+                | ".." ->
+                    // remove the last element from the stack
+                    do result.TryPop () |> ignore 
+                    fold stack result
+                | "." ->
+                    fold stack result
+                | element ->
+                    do result.Push element
+                    fold stack result
+        
+        let result = fold stack (Stack<string>())
+        
+        let rec joinStack accumulator (stack: Stack<string>) =
+            let separator = Path.DirectorySeparatorChar |> string
+            match stack.TryPop() with
+            | false, _ when String.IsNullOrWhiteSpace(accumulator) -> "/"
+            | false, _ -> accumulator
+            | true, value ->
+                let newAccumulator = $"%s{separator}%s{value}%s{accumulator}"
+                joinStack newAccumulator stack
+                
+        let joined = (result |> joinStack String.Empty).TrimStart(Path.DirectorySeparatorChar) 
+                
+        if isAbsolutePath then pathRoot + joined
+        else joined
