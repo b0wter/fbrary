@@ -210,8 +210,8 @@ module Audiobook =
         match a.Source, b.Source with
         | SingleFile _, MultiFile _ -> false
         | MultiFile _, SingleFile _ -> false
-        | SingleFile s1, SingleFile s2 -> s1 = s2
-        | MultiFile m1, MultiFile m2 -> m1 = m2
+        | SingleFile s1, SingleFile s2 -> IO.isSamePath s1 s2
+        | MultiFile m1, MultiFile m2 -> (m1 |> List.map IO.simplifyPath) = (m2 |> List.map IO.simplifyPath)
         
     let allFiles (a: Audiobook) : string list =
         match a.Source with

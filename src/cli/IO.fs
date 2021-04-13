@@ -103,6 +103,9 @@ module IO =
         
     let fileDoesNotExist = fileExists >> not
     
+    let isSamePath p1 p2 =
+        Path.GetFullPath(p1) = Path.GetFullPath(p2)
+    
     let private singleSeparator = Path.PathSeparator |> string
     let private doubleSeparator = String(Path.PathSeparator, 2)
     /// Removes redundant elements from the path (e.g. `..` and `.`).
