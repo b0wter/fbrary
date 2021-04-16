@@ -184,6 +184,24 @@ module Config =
         Ids: int list
     }
     
+    type MoveConfig = {
+        Id: int
+        Target: string
+    }
+    let private emptyMoveConfig = {
+        Id = -1
+        Target = String.Empty
+    }
+    
+    let applyMoveArg (config: MoveConfig) (m: MoveArgs) : MoveConfig =
+        match m with
+        | MoveArgs.Id i -> { config with Id = i }
+        | MoveArgs.Target t -> { config with Target = t }
+        
+    type IdConfig = {
+        Target: string
+    }
+    
     type Command
         = Add of AddConfig
         | List of ListConfig
@@ -199,6 +217,8 @@ module Config =
         | Write of WriteConfig
         | Migrate
         | Details of DetailsConfig
+        | Move of MoveConfig
+        | Id of IdConfig
         | Version
     
     type Config = {
@@ -215,7 +235,7 @@ module Config =
                 match remaining with
                 | [] ->
                     (ListFormat.Cli format) :: accumulator
-                | (ListFormat.Cli _) :: tail ->
+                | ListFormat.Cli _ :: tail ->
                     accumulator @ (ListFormat.Cli format) :: tail
                 | otherFormat :: tail ->
                     step (otherFormat :: accumulator) tail
@@ -226,7 +246,7 @@ module Config =
                 match remaining with
                 | [] ->
                     (ListFormat.Table { defaultTableFormat with Format = format }) :: accumulator
-                | (ListFormat.Table tableFormat) :: tail ->
+                | ListFormat.Table tableFormat :: tail ->
                     accumulator @ ((ListFormat.Table { tableFormat with Format = format }) :: tail)
                 | otherFormat :: tail ->
                     step (otherFormat :: accumulator) tail
@@ -237,7 +257,7 @@ module Config =
                 match remaining with
                 | [] ->
                     (ListFormat.Html (input, output)) :: accumulator
-                | (ListFormat.Html _) :: tail ->
+                | ListFormat.Html _ :: tail ->
                     accumulator @ (ListFormat.Html (input, output)) :: tail
                 | otherFormat :: tail ->
                     step (otherFormat :: accumulator) tail
@@ -367,6 +387,14 @@ module Config =
             { config with Command = Migrate }
         | MainArgs.Details ids ->
             { config with Command = Details { Ids = ids } }
+        | MainArgs.Move m ->
+            let moveConfig = match config.Command with
+                             | Move m -> m
+                             | _ -> emptyMoveConfig
+            let updatedMoveConfig = m.GetAllResults() |> List.fold applyMoveArg moveConfig
+            { config with Command = Move updatedMoveConfig }
+        | MainArgs.Id target ->
+            { config with Command = Id { Target = target } }
         | MainArgs.Version ->
             { config with Command = Version }
             

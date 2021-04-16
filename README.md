@@ -53,7 +53,7 @@ If you want to skip this step you need to pass the `--noninteractive` (`-n`) arg
 ```bash
 ./fbrary -l $LIBRARY_FILENAME add -n $PATH
 ```
-To add multiple books at once there are two options. First, you can use your shell to find the files and add them by invoking fbrary. This will give you the most freedom as you can leverage the power of existing tools. Scroll to the bottom and check the **hots** section.
+To add multiple books at once there are two options. First, you can use your shell to find the files and add them by invoking fbrary. This will give you the most freedom as you can leverage the power of existing tools. Scroll to the bottom and check the **hints** section.
 Second, there are two arguments that take care of the three most common tasks:
  * `--subdirectories-as-books` will only read the first level of subdirectories and add each subdirectory as an independent book. Each subdirecry will be scanned recursively.
  * `--files-as-books` will only read files from the given path and ignore all subdirectories. Each file is added as an independent audio book.
@@ -266,6 +266,21 @@ Details
 ./fbrary -l $LIBRARY_FILENAME details 1 2 ...
 ```
 Writes all available information to the terminal. Fields that are empty are represented as `-`. A rating of `-1` means that none has been set.
+
+Id
+--
+```bash
+./fbrary -l $LIBRARY_FILENAME id /path/to/file/or/folder
+```
+Prints the id and title/album name of all books that are stored in the given path or its subfolders. You can also supply filenames and every book containing that file will be listed.
+
+Move
+----
+```bash
+./fbrary -l $LIBRARY_FILENAME move $ID /path/to/move/to
+./fbrary -l library.json move 14 /home/tux/audiobooks/frankenstein.mp3
+```
+Moves an audio book to a new location. The location can either be a directory or a file. You cannot move a book consisting of multiple files to a single file. The library entry is updated accordingly.
 
 Hints
 =====

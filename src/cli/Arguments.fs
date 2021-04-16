@@ -87,6 +87,15 @@ module Arguments =
                 | Fields _ -> "Name of the fields you want to write to the files. Uses the same format as the `list` command. If you do not supply an argument all fields are written."
                 | DryRun -> "Do not modify files just print the changes."
                 | NonInteractive -> "Skip all user interaction."
+                
+    type MoveArgs =
+        | [<MainCommand; First>] Id of int
+        | [<CliPrefix(CliPrefix.None); Unique>] Target of string
+        interface IArgParserTemplate with
+            member s.Usage =
+                match s with
+                | Id _ -> "Id of the audio book to move."
+                | Target _ -> "Path to move the audiobook to. Follows the syntax of the `mv` command."
         
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
@@ -102,8 +111,10 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
+        | [<CliPrefix(CliPrefix.None)>] Move of ParseResults<MoveArgs>
         | [<CliPrefix(CliPrefix.None)>] Migrate
         | [<CliPrefix(CliPrefix.None)>] Details of int list
+        | [<CliPrefix(CliPrefix.None)>] Id of string
         | [<CliPrefix(CliPrefix.DoubleDash); First>] Version
         interface IArgParserTemplate with
             member s.Usage =
@@ -123,5 +134,7 @@ module Arguments =
                 | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
                 | Migrate -> "Migrate an old library file to the current format."
                 | Details _ -> "List the complete details (including files) for the given audio books."
+                | Move _ -> "Move the audio book to a new folder. You can specify the book by id or path. For books with multiple files you need to supply the book's root folder."
+                | Id _ -> "Retrieve the id for the audio book that contains the given file."
                 | Version -> "Echo the version of this software."
                 

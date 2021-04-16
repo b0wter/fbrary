@@ -206,6 +206,7 @@ module Audiobook =
     let containsStringCaseInsensitive pattern (a: Audiobook) =
         a |> properties |> List.map (fun s -> s.ToLower()) |> List.exists (String.contains pattern)
         
+    /// Checks whether two audio books are based on the same file(s).
     let isSameSource (a: Audiobook) (b: Audiobook) : bool =
         match a.Source, b.Source with
         | SingleFile _, MultiFile _ -> false
@@ -213,6 +214,24 @@ module Audiobook =
         | SingleFile s1, SingleFile s2 -> IO.isSamePath s1 s2
         | MultiFile m1, MultiFile m2 -> (m1 |> List.map IO.simplifyPath) = (m2 |> List.map IO.simplifyPath)
         
+    /// Checks whether an `Audiobook`'s source matches the given `path`.
+    /// If the book has a `SingleFile` source returns whether the filename begins with `path`.
+    /// Else returns true if all of the filenames in a `MultiFile` begin with the given `path`.
+    let matchesSource (path: string) (a: Audiobook) : bool =
+        match a.Source with
+        | SingleFile f -> f.StartsWith(path)
+        | MultiFile m -> m |> List.forall (fun s -> s.StartsWith(path))
+        
+    /// Returns true if the given path matches the source of an audio book.
+    /// In case of a `SingleFile` both the filename and the given path need to match.
+    /// In case of a `MultiFile` all of the filenames need to begin with the given path.
+    let containsPath (path: string) (a: Audiobook) : bool =
+        match a.Source with
+        | SingleFile f -> f.StartsWith(path)
+        | MultiFile m ->
+            m |> List.exists (fun f -> f.StartsWith(path))
+        
+    /// Returns all files of this audiobook.
     let allFiles (a: Audiobook) : string list =
         match a.Source with
         | SingleFile s -> [ s ]

@@ -105,6 +105,29 @@ module IO =
     
     let isSamePath p1 p2 =
         Path.GetFullPath(p1) = Path.GetFullPath(p2)
+        
+    let move (source: string) (target: string) : Result<unit, string> =
+        (*
+            Rules for moving books:
+            - cannot move to a non-existing folder
+            - cannot move to an existing file
+        *)
+        let validate source target =
+            if   File.Exists(target) then Error "Cannot move to an existing file."
+            elif not <| Directory.Exists(target) then Error "Cannot move to a non-existing folder."
+            else Ok ()
+            
+        try
+            
+            
+            let mover = match Directory.Exists(source), File.Exists(source) with
+                        | true, true | false, false -> failwith "Could not determine whether the path is a file or a directory."
+                        | true, false -> Directory.Move
+                        | false, true -> File.Move
+            
+            Error "not implemented"
+        with
+        | error -> Error error.Message
     
     let private singleSeparator = Path.PathSeparator |> string
     let private doubleSeparator = String(Path.PathSeparator, 2)
@@ -113,7 +136,8 @@ module IO =
     ///     "/a/../"             -> "/"
     ///     "/a/../.././../../." -> "/"
     ///     "/a/./b/../../c/"    -> "/c"
-    let simplifyPath (input: string) =
+    [<Obsolete("This function is purely for research purposes and should not be used. Use System.IO.Path.GetFullPath instead.")>]
+    let __simplifyPath (input: string) =
         let pathRoot = Path.GetPathRoot(input)
         let isAbsolutePath = not <| String.IsNullOrWhiteSpace(pathRoot)
         let input = input.Substring(pathRoot.Length)
@@ -154,3 +178,6 @@ module IO =
                 
         if isAbsolutePath then pathRoot + joined
         else joined
+        
+    let simplifyPath (path: string): string =
+        Path.GetFullPath(path)

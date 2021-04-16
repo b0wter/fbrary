@@ -90,6 +90,14 @@ module Library =
                                      step accumulator remainingIds tail
         step [] ids l.Audiobooks
         
+    let findBy (predicate: Audiobook.Audiobook -> bool) (l: Library) : Result<Audiobook.Audiobook, string> =
+        match l.Audiobooks |> List.tryFind predicate with
+        | Some book -> Ok book
+        | None -> Error "Found no audio book matching the predicate"
+        
+    let tryFindBy (predicate: Audiobook.Audiobook -> bool) (l: Library) : Audiobook.Audiobook option =
+        l.Audiobooks |> List.tryFind predicate
+        
     /// Reads a text file and deserializes a `Library` instance.
     /// Returns errors if the given file does not exist, is not readable or the json is invalid.
     let fromFile filename : Result<Library, string> =

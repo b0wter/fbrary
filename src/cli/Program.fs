@@ -406,6 +406,38 @@ module Program =
             do! updatedFilesLibrary |> Library.serialize |> IO.writeTextToFile libraryFile
         }
         
+    let move (config: Config.MoveConfig) (library: Library.Library) =
+        result {
+            let! book = library |> Library.findById config.Id
+            
+            return ()
+        }
+        
+    let identify (config: Config.IdConfig) (library: Library.Library) =
+        let shortName (b: Audiobook.Audiobook) =
+            match b.Album, b.Title with
+            | Some album, Some title -> sprintf " (%s, %s)" album title
+            | Some album, None -> sprintf " (%s)" album
+            | None, Some title -> sprintf " (%s)" title
+            | None, None -> String.Empty
+            
+        let printBook (b: Audiobook.Audiobook) =
+           let filename = match b.Source with
+                          | Audiobook.AudiobookSource.SingleFile f ->
+                              f
+                          | Audiobook.AudiobookSource.MultiFile many ->
+                              many
+                              |> List.tryHead
+                              |> Option.map (fun s -> sprintf "%s + %i more" s (many.Length - 1))
+                              |?| "<no file>"
+           printfn "%i%s (%s)" b.Id (b |> shortName) filename
+            
+        match library.Audiobooks |> List.filter (Audiobook.containsPath config.Target) with
+        | [] ->
+            do printfn "The file is not part of any audio book."
+        | list ->
+            do list |> List.iter printBook
+        
     let private parseCommandLineArguments argv =
         let errorHandler = ProcessExiter(colorizer = function ErrorCode.HelpText -> None | _ -> None)
         let parser = ArgumentParser.Create<Arguments.MainArgs>(errorHandler = errorHandler)
@@ -473,6 +505,10 @@ module Program =
                 return! (runOnExisting (migrateLibrary config.LibraryFile))
             | Config.Details detailsConfig ->
                 return! (runOnExisting (listDetails detailsConfig))
+            | Config.Move moveConfig ->
+                return! (runOnExisting (move moveConfig))
+            | Config.Id idConfig ->
+                return! (runOnExisting ((identify idConfig) >> Ok))
             | Config.Version ->
                 do Console.WriteLine(Version.current)
         }
