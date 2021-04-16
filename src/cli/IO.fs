@@ -181,3 +181,16 @@ module IO =
         
     let simplifyPath (path: string): string =
         Path.GetFullPath(path)
+        
+    module File =
+        let exists = File.Exists
+        
+    module Directory =
+        let exists = Directory.Exists
+        
+    module Path =
+        let fullPath = Path.GetFullPath
+        
+        let directoryName (s: string) = Path.GetDirectoryName s
+        
+        let combine (a, b) = Path.Combine(a, b)

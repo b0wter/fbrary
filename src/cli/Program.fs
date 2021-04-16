@@ -2,7 +2,6 @@ namespace b0wter.Fbrary
 
 open Argu
 open System
-open System.IO
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Operators
 open b0wter.Fbrary
@@ -63,12 +62,12 @@ module Program =
         }
         
     let addPath (addConfig: Config.AddConfig) (path: string) (idGenerator: unit -> int) : Result<Audiobook.Audiobook list, string> =
-        if File.Exists(path) then
+        if IO.File.exists(path) then
             if addConfig.SubDirectoriesAsBooks then printfn "The option to add subdirectories as books is ignored if the given path points to a file."
             elif addConfig.FilesAsBooks then printfn "The option to add files as independent books is ignored if the given path points to a file."
             else ()
             addFile (not <| addConfig.NonInteractive) path idGenerator |> Result.map List.singleton
-        elif Directory.Exists(path) then
+        elif IO.Directory.exists(path) then
             addDirectory addConfig path idGenerator
         else
             Error <| sprintf "The given path '%s' does not exist." path
@@ -76,17 +75,17 @@ module Program =
     // TODO: consolidate all the different ways to read/create a library        
     
     let private readLibraryOr (ifNotExisting: unit -> Library.Library) (filename: string) : Result<Library.Library, string> =
-        if File.Exists(filename) then
+        if IO.File.exists(filename) then
             (IO.readTextFromFile filename) |> Result.bind Library.deserialize
-        elif Directory.Exists(filename) then
+        elif IO.Directory.exists(filename) then
             Error "The given path is a directory not a file."
         else
             ifNotExisting () |> Ok
             
     let private readLibraryOrError filename = 
-        if File.Exists(filename) then
+        if IO.File.exists(filename) then
             (IO.readTextFromFile filename) |> Result.bind Library.deserialize
-        elif Directory.Exists(filename) then
+        elif IO.Directory.exists(filename) then
             Error "The given path is a directory not a file."
         else
             Error (sprintf "The library file '%s' does not exist." filename)
@@ -95,9 +94,9 @@ module Program =
         readLibraryOr (fun () -> Library.empty)
         
     let readLibraryIfExisting (filename: string) : Result<Library.Library option, string> =
-        if File.Exists(filename) then
+        if IO.File.exists(filename) then
             (IO.readTextFromFile filename) |> Result.bind (Library.deserialize >> Result.map Some)
-        elif Directory.Exists(filename) then
+        elif IO.Directory.exists(filename) then
             Error "The given path is a directory not a file."
         else
             Ok None
@@ -325,8 +324,8 @@ module Program =
         result {
             let allLibraryFiles = library.Audiobooks
                                   |> List.collect Audiobook.allFiles
-                                  |> List.map (Path.GetFullPath >> IO.simplifyPath) 
-            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map (Path.GetFullPath >> IO.simplifyPath))
+                                  |> List.map (IO.Path.fullPath >> IO.simplifyPath) 
+            let! allPathFiles = config.Path |> (IO.listFiles true) |> Result.map IO.filterMp3Files |> Result.map (List.map IO.Path.fullPath)
             let missingFiles = allPathFiles |> List.except allLibraryFiles
             if missingFiles.IsEmpty then
                 do printfn "All files are included in the library."
@@ -382,8 +381,8 @@ module Program =
             
             // Update paths in the config to be absolute.
             do printfn "Making sure the sources use absolute paths."
-            let rootPath = Path.GetDirectoryName libraryFile
-            let rootPath = Path.Combine(Environment.CurrentDirectory, rootPath)
+            let rootPath = IO.Path.directoryName libraryFile
+            let rootPath = IO.Path.combine(Environment.CurrentDirectory, rootPath)
             let updateSource (book: Audiobook.Audiobook) : Audiobook.Audiobook =
                 do printfn "Migrating relative path to use the root '%s'." rootPath
                 let combinator (rootPath: string) (filename: string) =
@@ -391,7 +390,7 @@ module Program =
                         do printfn "Skipping '%s' because it already starts with the root path." filename
                         filename
                     else
-                        let updated = Path.Combine(rootPath, filename)
+                        let updated = IO.Path.combine(rootPath, filename)
                         do printfn "Updated '%s' to '%s'." filename updated
                         updated
                     
