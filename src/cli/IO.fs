@@ -182,11 +182,6 @@ module IO =
     let simplifyPath (path: string): string =
         Path.GetFullPath(path)
         
-    module File =
-        let exists = File.Exists
-        
-    module Directory =
-        let exists = Directory.Exists
         
     module Path =
         let fullPath = Path.GetFullPath
@@ -194,3 +189,77 @@ module IO =
         let directoryName (s: string) = Path.GetDirectoryName s
         
         let combine (a, b) = Path.Combine(a, b)
+        
+        let parent (path: string) : string option =
+            try
+                if File.Exists(path) then
+                    Path.GetDirectoryName(path) |> Some
+                else
+                    Directory.GetParent(path).FullName |> Some
+            with
+            | _ -> None
+        
+    module File =
+        let exists = File.Exists
+        
+        let move source target =
+            try
+                File.Move(source, target)
+                Ok ()
+            with
+            | ex -> Error ex.Message
+            
+        /// Returns the extension of the given filename (including ".").
+        /// Returns `None` if the file does not exist or does not have an extension.
+        /// Returns `Some extension` otherwise.
+        let extension (filename: string) =
+            match Path.GetExtension(filename) with
+            | null -> None
+            | s when String.IsNullOrWhiteSpace(s) -> None
+            | s -> Some s
+            
+        let hasExtension filename =
+            match filename |> extension with
+            | Some _ -> true
+            | None -> false
+            
+    module Directory =
+        let exists = Directory.Exists
+        
+        let create path =
+            try
+                do Directory.CreateDirectory(path) |> ignore
+                Ok ()
+            with
+            | ex -> Error ex.Message
+            
+        let move source target =
+            try
+                Directory.Move(source, target)   
+                Ok ()
+            with
+            | ex -> Error ex.Message
+            
+        let moveFilesInFolder source target =
+            // If the target is not a file it either:
+            //  - does not exist
+            //  - is a directory
+            if not <| (target |> File.exists) then
+                try
+                    let files = Directory.GetFiles(source) |> List.ofArray
+                    let fileOperation = fun files -> files |> List.traverseResultM (fun file -> File.move file target) |> Result.map (fun _ -> ())
+                    let directories = Directory.GetDirectories(source) |> List.ofArray
+                    let directoryOperation = fun directories -> directories |> List.traverseResultM (fun folder -> move folder target) |> Result.map (fun _ -> ())
+                    
+                    // Try to create the directory because it won't fail if it already exists.
+                    do Directory.CreateDirectory target |> ignore
+                    
+                    match files |> fileOperation, directories |> directoryOperation with
+                    | Ok _, Ok _ -> Ok ()
+                    | Ok _, Error e -> Error (sprintf "The move operation succeeded only partially. The files were moved but the folders were not, because %s" e)
+                    | Error e, Ok _ -> Error (sprintf "The move operation succeeded only partially. The files were moved but the folders were not, because %s." e)
+                    | Error e1, Error e2 -> Error (sprintf "The move operation failed becaues '%s' and '%s'." e1 e2)
+                with
+                | ex -> Error ex.Message
+            else
+                Error "The target for moving multiple files needs to be a folder."

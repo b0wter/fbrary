@@ -384,14 +384,14 @@ module Program =
             let rootPath = IO.Path.directoryName libraryFile
             let rootPath = IO.Path.combine(Environment.CurrentDirectory, rootPath)
             let updateSource (book: Audiobook.Audiobook) : Audiobook.Audiobook =
-                do printfn "Migrating relative path to use the root '%s'." rootPath
+                do printfn $"Migrating relative path to use the root '%s{rootPath}'."
                 let combinator (rootPath: string) (filename: string) =
                     if filename.StartsWith(rootPath) then
-                        do printfn "Skipping '%s' because it already starts with the root path." filename
+                        do printfn $"Skipping '%s{filename}' because it already starts with the root path."
                         filename
                     else
                         let updated = IO.Path.combine(rootPath, filename)
-                        do printfn "Updated '%s' to '%s'." filename updated
+                        do printfn $"Updated '%s{filename}' to '%s{updated}'."
                         updated
                     
                 let configuredCombinator = combinator rootPath
