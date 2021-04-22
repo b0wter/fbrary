@@ -180,7 +180,9 @@ module IO =
         else joined
         
     let simplifyPath (path: string): string =
-        Path.GetFullPath(path)
+        let simplified = Path.GetFullPath path
+        if simplified = (Path.DirectorySeparatorChar |> string) then simplified
+        else simplified.TrimEnd(Path.DirectorySeparatorChar)
         
     /// Finds the largest common path across multiple paths.
     let findLargestCommonPath (paths: string list) : string =
