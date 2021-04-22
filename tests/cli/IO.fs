@@ -64,3 +64,19 @@ module IO =
             do skipIfOnWindows ()
             let output = input |> IO.simplifyPath 
             output |> should equal result
+
+    module FindLargestCommonPath =
+        
+        let private skipIfOnWindows () =
+            Skip.If(System.Runtime.InteropServices.RuntimeInformation.IsOSPlatform(System.Runtime.InteropServices.OSPlatform.Windows))
+        
+        [<SkippableTheory>]
+        [<InlineData("/home/foo/bar/file.ext", "/home/foo/bar/file2.ext", "/home/foo/bar/file3.ext", "/home/foo/bar")>]
+        [<InlineData("/home/foo/a/file.ext", "/home/foo/b/file2.ext", "/home/foo/c/file3.ext", "/home/foo")>]
+        [<InlineData("/home/foo/bar/file.ext", "/tmp/foo/bar/file.ext", "/tmp/foo/bar/file2.ext", "/")>]
+        let ``Given paths with common base path returns common path`` (a, b, c, result) =
+            let paths = [a; b; c]
+            
+            let outcome = IO.findLargestCommonPath paths
+            
+            outcome |> should equal result

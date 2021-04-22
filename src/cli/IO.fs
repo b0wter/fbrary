@@ -182,6 +182,18 @@ module IO =
     let simplifyPath (path: string): string =
         Path.GetFullPath(path)
         
+    /// Finds the largest common path across multiple paths.
+    let findLargestCommonPath (paths: string list) : string =
+        let directories = paths |> List.map Path.GetDirectoryName
+        let shortestDirectory = directories |> List.minBy (fun d -> d.Length)
+        
+        let rec step (current: string) =
+            if directories |> List.forall (fun d -> d.StartsWith(current)) then
+                current
+            else
+                step (Directory.GetParent(current).FullName)
+        
+        step shortestDirectory
         
     module Path =
         let fullPath = Path.GetFullPath
@@ -223,6 +235,8 @@ module IO =
             | Some _ -> true
             | None -> false
             
+        let fileName (s: string) = Path.GetFileName s
+        
     module Directory =
         let exists = Directory.Exists
         
@@ -263,3 +277,5 @@ module IO =
                 | ex -> Error ex.Message
             else
                 Error "The target for moving multiple files needs to be a folder."
+                
+        let directoryName (s: string) = Path.GetDirectoryName(s)
