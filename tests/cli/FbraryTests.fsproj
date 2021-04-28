@@ -8,8 +8,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="Formatter.fs" />
-    <Compile Include="IO.fs" />
+    <Compile Include="FormatterTests.fs" />
+    <Compile Include="IoTests.fs" />
+    <Compile Include="ProgramTests.fs" />
     <Compile Include="Program.fs" />
   </ItemGroup>
 

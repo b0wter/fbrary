@@ -496,22 +496,27 @@ module Program =
             return! f library
         }
         
-    let addConfigEntriesToToCliArguments (argv: string []) =
-        match GlobalConfig.tryLoad () with
-        | Some config ->
-            let containsLibraryArgument =
-                argv
-                |> Array.filter (fun a -> a = "-l" || a = "--library-file" || a = "--library")
-                |> Array.length > 0
-            if containsLibraryArgument then argv
-            else Array.append [| "-l"; config.LibraryFile |] argv
-        | None ->
+    let addConfigEntriesToToCliArguments (retriever: unit -> GlobalConfig.GlobalConfig option) (argv: string []) =
+        let containsLibraryArgument =
             argv
-        
+            |> Array.filter (fun a -> a = "-l" || a = "--library-file" || a = "--library")
+            |> Array.length > 0
+        if containsLibraryArgument then argv
+        else
+            match retriever () with
+            | Some config ->
+                let containsLibraryArgument =
+                    argv
+                    |> Array.filter (fun a -> a = "-l" || a = "--library-file" || a = "--library")
+                    |> Array.length > 0
+                if containsLibraryArgument then argv
+                else Array.append [| "-l"; config.LibraryFile |] argv
+            | None ->
+                argv
         
     [<EntryPoint>]
     let main argv =
-        let argv = addConfigEntriesToToCliArguments argv
+        let argv = addConfigEntriesToToCliArguments GlobalConfig.tryLoad argv
         
         let r = result {
             let parser, results = parseCommandLineArguments argv

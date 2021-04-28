@@ -6,7 +6,7 @@ module GlobalConfig =
     
     let private directory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
     let private file = "config.json"
-    let globalConfigPath = IO.Path.combine (directory, file)
+    let globalConfigPath = IO.Path.Combine(directory, "fbrary", file)
     
     type GlobalConfig = {
         LibraryFile: string

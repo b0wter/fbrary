@@ -1,6 +1,6 @@
 name: fbrary
 base: core20
-version: '2.4.0' 
+version: '2.3.1' 
 summary: Manage your audio book library from the command line.
 description: |
   Use this tool to manage your audiobook library from the
