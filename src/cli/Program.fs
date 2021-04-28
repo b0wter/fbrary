@@ -406,7 +406,7 @@ module Program =
         }
         
     let move (config: Config.MoveConfig) (library: Library.Library) =
-        let moveSingleFile source target =
+        let moveSingleFile source target : Result<Audiobook.AudiobookSource, string> =
             result {
                 let targetFilename =
                     if target |> IO.File.hasExtension then target
@@ -414,39 +414,36 @@ module Program =
                 let targetFolderName = targetFilename |> IO.Directory.directoryName
                 do! IO.Directory.create targetFolderName
                 do! IO.File.move source targetFilename
+                return Audiobook.AudiobookSource.SingleFile targetFilename
             }
             
         /// Moves all source files to the target.
         /// Checks whether the target is an existing file. If it is the process is aborted.
         /// Makes sure that the target directory exists.
-        let moveMultipleFiles (sources: string list) target =
+        let moveMultipleFiles (sources: string list) target : Result<Audiobook.AudiobookSource, string> =
             result {
                 if target |> IO.File.exists then
                     return! Error "Cannot move an audio book consisting of multiple files to a file location."
                 else
                     do printfn "test"
                     let basePath = IO.findLargestCommonPath sources
-                    return! sources |> List.traverseResultM (fun s ->
-                        result {
-                            // remove the SeparatorChar because it confuses `Path.combine` because it thinks
-                            // relative path is an absolute path otherwise
+                    let! singles = sources |> List.traverseResultM (fun s ->
                             let relativePath = s.Substring(basePath.Length).TrimStart(IO.Path.DirectorySeparatorChar)
                             let targetFilename = IO.Path.combine (target, relativePath)
-                            return! moveSingleFile s targetFilename
-                        }) |> Result.map (fun _ -> ())
+                            moveSingleFile s targetFilename)
+                    return Audiobook.mergeSource singles |> Audiobook.AudiobookSource.MultiFile
             }
        
-        let move (source: Audiobook.AudiobookSource) target =
-            result {
-                return! match source with
-                        | Audiobook.AudiobookSource.SingleFile file -> moveSingleFile file target
-                        | Audiobook.AudiobookSource.MultiFile files -> moveMultipleFiles files target
-            }
+        let move (source: Audiobook.AudiobookSource) target : Result<Audiobook.AudiobookSource, string> =
+            match source with
+            | Audiobook.AudiobookSource.SingleFile file -> moveSingleFile file target
+            | Audiobook.AudiobookSource.MultiFile files -> moveMultipleFiles files target
             
         result {
             let! book = library |> Library.findById config.Id
-            do! move book.Source config.Target
-            return ()
+            let! updatedSource = move book.Source config.Target
+            let updatedBook = { book with Source = updatedSource }
+            return! library |> Library.updateBook updatedBook
         }
         
     let identify (config: Config.IdConfig) (library: Library.Library) =
@@ -499,8 +496,22 @@ module Program =
             return! f library
         }
         
+    let addConfigEntriesToToCliArguments (argv: string []) =
+        match GlobalConfig.tryLoad () with
+        | Some config ->
+            let containsLibraryArgument =
+                argv
+                |> Array.filter (fun a -> a = "-l" || a = "--library-file" || a = "--library")
+                |> Array.length > 0
+            if containsLibraryArgument then argv
+            else Array.append [| "-l"; config.LibraryFile |] argv
+        | None ->
+            argv
+        
+        
     [<EntryPoint>]
     let main argv =
+        let argv = addConfigEntriesToToCliArguments argv
         
         let r = result {
             let parser, results = parseCommandLineArguments argv
@@ -542,7 +553,7 @@ module Program =
             | Config.Details detailsConfig ->
                 return! (runOnExisting (listDetails detailsConfig))
             | Config.Move moveConfig ->
-                return! (runOnExisting (move moveConfig))
+                return! (runOnExistingAndSave (move moveConfig))
             | Config.Id idConfig ->
                 return! (runOnExisting ((identify idConfig) >> Ok))
             | Config.Version ->

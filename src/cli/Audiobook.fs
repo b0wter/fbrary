@@ -22,6 +22,14 @@ module Audiobook =
         | MultiFile files -> (files |> List.head) + (sprintf " + %i more" (files.Length - 1))
         | SingleFile file -> file
         
+    let sourceAsList (s: AudiobookSource) : string list =
+        match s with
+        | SingleFile f -> [ f ]
+        | MultiFile m -> m
+        
+    let mergeSource (singles: AudiobookSource list) =
+        singles |> List.collect  sourceAsList
+        
     type Audiobook = {
         Id: int
         Source: AudiobookSource

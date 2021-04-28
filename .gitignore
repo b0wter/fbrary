@@ -42,3 +42,4 @@ appsettings.*.json
 
 .fake
 *.snap
+snap.login

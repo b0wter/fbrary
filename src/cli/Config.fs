@@ -192,11 +192,6 @@ module Config =
         Id = -1
         Target = String.Empty
     }
-    
-    let applyMoveArg (config: MoveConfig) (m: MoveArgs) : MoveConfig =
-        match m with
-        | MoveArgs.Id i -> { config with Id = i }
-        | MoveArgs.Target t -> { config with Target = t }
         
     type IdConfig = {
         Target: string
@@ -387,12 +382,8 @@ module Config =
             { config with Command = Migrate }
         | MainArgs.Details ids ->
             { config with Command = Details { Ids = ids } }
-        | MainArgs.Move m ->
-            let moveConfig = match config.Command with
-                             | Move m -> m
-                             | _ -> emptyMoveConfig
-            let updatedMoveConfig = m.GetAllResults() |> List.fold applyMoveArg moveConfig
-            { config with Command = Move updatedMoveConfig }
+        | MainArgs.Move (id, target) ->
+            { config with Command = Move { Id = id; Target = target } }
         | MainArgs.Id target ->
             { config with Command = Id { Target = target } }
         | MainArgs.Version ->

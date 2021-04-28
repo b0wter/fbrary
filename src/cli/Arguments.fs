@@ -88,15 +88,6 @@ module Arguments =
                 | DryRun -> "Do not modify files just print the changes."
                 | NonInteractive -> "Skip all user interaction."
                 
-    type MoveArgs =
-        | [<MainCommand; First>] Id of int
-        | [<CliPrefix(CliPrefix.None); Unique>] Target of string
-        interface IArgParserTemplate with
-            member s.Usage =
-                match s with
-                | Id _ -> "Id of the audio book to move."
-                | Target _ -> "Path to move the audiobook to. Follows the syntax of the `mv` command."
-        
     type MainArgs =
         | [<AltCommandLine("-V")>] Verbose
         | [<AltCommandLine("-l"); First; AltCommandLine("--library-file")>] Library of string
@@ -111,7 +102,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
-        | [<CliPrefix(CliPrefix.None)>] Move of ParseResults<MoveArgs>
+        | [<CliPrefix(CliPrefix.None)>] Move of id:int * target:string
         | [<CliPrefix(CliPrefix.None)>] Migrate
         | [<CliPrefix(CliPrefix.None)>] Details of int list
         | [<CliPrefix(CliPrefix.None)>] Id of string
@@ -134,7 +125,7 @@ module Arguments =
                 | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
                 | Migrate -> "Migrate an old library file to the current format."
                 | Details _ -> "List the complete details (including files) for the given audio books."
-                | Move _ -> "Move the audio book to a new folder. You can specify the book by id or path. For books with multiple files you need to supply the book's root folder."
+                | Move _ -> "Move the audio book to a new folder. You specify the book by id followed by the target path. For books with multiple files you need to supply the book's root folder."
                 | Id _ -> "Retrieve the id for the audio book that contains the given file."
                 | Version -> "Echo the version of this software."
                 

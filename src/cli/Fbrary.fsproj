@@ -19,6 +19,7 @@
     <Compile Include="Formatter.fs" />
     <Compile Include="Arguments.fs" />
     <Compile Include="Config.fs" />
+    <Compile Include="GlobalConfig.fs" />
     <Compile Include="Library.fs" />
     <Compile Include="TagLib.fs" />
     <Compile Include="Program.fs" />

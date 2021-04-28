@@ -106,29 +106,6 @@ module IO =
     let isSamePath p1 p2 =
         Path.GetFullPath(p1) = Path.GetFullPath(p2)
         
-    let move (source: string) (target: string) : Result<unit, string> =
-        (*
-            Rules for moving books:
-            - cannot move to a non-existing folder
-            - cannot move to an existing file
-        *)
-        let validate source target =
-            if   File.Exists(target) then Error "Cannot move to an existing file."
-            elif not <| Directory.Exists(target) then Error "Cannot move to a non-existing folder."
-            else Ok ()
-            
-        try
-            
-            
-            let mover = match Directory.Exists(source), File.Exists(source) with
-                        | true, true | false, false -> failwith "Could not determine whether the path is a file or a directory."
-                        | true, false -> Directory.Move
-                        | false, true -> File.Move
-            
-            Error "not implemented"
-        with
-        | error -> Error error.Message
-    
     let private singleSeparator = Path.PathSeparator |> string
     let private doubleSeparator = String(Path.PathSeparator, 2)
     /// Removes redundant elements from the path (e.g. `..` and `.`).
@@ -178,10 +155,10 @@ module IO =
                 
         if isAbsolutePath then pathRoot + joined
         else joined
-        
+
     let simplifyPath (path: string): string =
         let simplified = Path.GetFullPath path
-        if simplified = (Path.DirectorySeparatorChar |> string) then simplified
+        if simplified = (Path.DirectorySeparatorChar |> string) || simplified = Path.GetPathRoot(path) then simplified
         else simplified.TrimEnd(Path.DirectorySeparatorChar)
         
     /// Finds the largest common path across multiple paths.
