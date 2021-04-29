@@ -27,7 +27,7 @@ To make this change permanent you can edit your `/etc/fstab`:
 
 Global Configuration
 ====================
-Current versions (>= 2.4.2) offer the user to create a global configuration file to specify the library file to use.
+Current versions (>= 2.4.0) offer the user to create a global configuration file to specify the library file to use.
 ```
 Linux:   /home/your_username/.local/share/fbrary/config.json
 OSX:     /Users/your_username/.local/share/fbrary/config.json
