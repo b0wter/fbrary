@@ -25,6 +25,21 @@ To make this change permanent you can edit your `/etc/fstab`:
 /storage/audiobooks        /home/your_username/audiobooks   auto    bind    0   3
 ```
 
+Global Configuration
+====================
+Current versions (>= 2.4.2) offer the user to create a global configuration file to specify the library file to use.
+```
+Linux:   /home/your_username/.local/share/fbrary/config.json
+OSX:     /Users/your_username/.local/share/fbrary/config.json
+Windows: C:\Users\your_username\AppData\Local\fbrary\config.json
+```
+The only supported option is `LibraryFile`:
+```
+{
+	"LibraryFile": "/path/to/your/library/file"
+}
+```
+
 Updating from version 1.x
 =========================
 In case you have an old library files from a previous version you need run the `migrate` command to update your library file to the current standard:
