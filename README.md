@@ -39,6 +39,7 @@ The only supported option is `LibraryFile`:
 	"LibraryFile": "/path/to/your/library/file"
 }
 ```
+You can then omit the `-l` parameter. However, if you supply it it takes precedence over the value specified in the global configuration.
 
 Updating from version 1.x
 =========================
