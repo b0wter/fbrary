@@ -102,6 +102,7 @@ module Arguments =
         | [<CliPrefix(CliPrefix.None)>] NotCompleted of int list
         | [<CliPrefix(CliPrefix.None)>] Aborted of int list
         | [<CliPrefix(CliPrefix.None)>] Files of ParseResults<FilesArgs>
+        | [<CliPrefix(CliPrefix.None)>] FilesExist of int option
         | [<CliPrefix(CliPrefix.None)>] Unmatched of string
         | [<CliPrefix(CliPrefix.None)>] Write of ParseResults<WriteArgs>
         | [<CliPrefix(CliPrefix.None)>] Move of id:int * target:string
@@ -123,6 +124,7 @@ module Arguments =
                 | NotCompleted _ -> "Mark the book with the given id as not completely listened to."
                 | Aborted _ -> "Mark the book with the given id as aborted meaning you stopped listening to it."
                 | Files _ -> "List all files of an audio book. Use the `list` command to find book ids."
+                | FilesExist _ -> "Checks whether all files of the audio book exist on disk. If you specify an id only the given book will be checked. Otherwise all books will be checked."
                 | Unmatched _ -> "Reads all mp3/ogg files in the given paths and checks if all files are known to the library."
                 | Write _ -> "Write the meta data stored in the library to the actual mp3/ogg files."
                 | Migrate -> "Migrate an old library file to the current format."

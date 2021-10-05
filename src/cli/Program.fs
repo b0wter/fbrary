@@ -320,6 +320,21 @@ module Program =
             return! Library.updateBooks updatedBooks library
         }
         
+    let filesExist (filesExistConfig: Config.FilesExistConfig) (library: Library.Library) : Result<unit, string> =
+        result {
+            let! filesToCheck = match filesExistConfig.Id with
+                                | Some i -> Library.findById i library |> Result.map Audiobook.allFiles
+                                | None -> library.Audiobooks |> List.collect Audiobook.allFiles |> Ok
+            let nonExistingFiles = filesToCheck |> List.filter (not << System.IO.File.Exists)
+            
+            if nonExistingFiles.IsEmpty then
+                do printfn "All files exist."
+            else
+                do printfn "List of missing files:"
+                do nonExistingFiles |> List.iter (printfn "  %s")
+                do printfn "There are %i files that do not exist (see output above)." nonExistingFiles.Length
+        }
+        
     let unmatched (config: Config.UnmatchedConfig) (library: Library.Library) =
         result {
             let allLibraryFiles = library.Audiobooks
@@ -547,6 +562,8 @@ module Program =
                 let! string = listFiles config.LibraryFile filesConfig
                 if String.IsNullOrWhiteSpace(string) then ()
                 else do Console.WriteLine(string)
+            | Config.FilesExist filesExistConfig ->
+                return! (runOnExisting (filesExist filesExistConfig))
             | Config.Unmatched unmatchedConfig ->
                 return! (runOnExisting (unmatched unmatchedConfig))
             | Config.Uninitialized ->

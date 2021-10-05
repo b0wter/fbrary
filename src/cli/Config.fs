@@ -161,6 +161,10 @@ module Config =
         ListMissing: bool
     }
     
+    type FilesExistConfig = {
+        Id: int option
+    }
+    
     let private emptyFilesConfig = {
         Ids = []
         Separator = NewLine
@@ -210,6 +214,7 @@ module Config =
         | Aborted of AbortedConfig
         | Unmatched of UnmatchedConfig
         | Files of FilesConfig
+        | FilesExist of FilesExistConfig
         | Uninitialized
         | Write of WriteConfig
         | Migrate
@@ -363,6 +368,8 @@ module Config =
                               | _ -> emptyFilesConfig
             let updatedFilesConfig = files.GetAllResults() |> List.fold applyFilesArg filesConfig
             { config with Command = Files updatedFilesConfig  }
+        | MainArgs.FilesExist bookId ->
+            { config with Command = FilesExist { Id = bookId } }
         | MainArgs.Unmatched path ->
             { config with Command = Unmatched { Path = path } }
         | MainArgs.List l ->

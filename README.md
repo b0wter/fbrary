@@ -259,6 +259,14 @@ Files
 List all files of the given audio book.
 Use the `list` command to find `$ID`s.
 
+FilesExist
+----------
+```bash
+./fbrary -l $LIBRARY_FILENAME filesexist $ID
+./fbrary -l $LIBRARY_FILENAME files
+```
+Checks whether all files of the given audio book (all books if the id is omitted) exist.
+
 Write
 -----
 ```bash
