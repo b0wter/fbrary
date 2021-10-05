@@ -8,8 +8,10 @@ module Arguments =
                           "Note that all files inside a folder are interpreted as a single audiobook. " +
                           "If you want to add sub folders as independent audiobooks add them one by one. " +
                           "Note that new entries overwrite previous entries. Filenames are used to check if the audiobook was previously added."
-    let formattedFormatStringList = System.String.Join(", ", Formatter.allFormantPlaceholders)
-    let formattedFieldList = System.String.Join(", ", Formatter.allFieldPlaceholders)
+    
+    let private cliFormattedFormatStringList = System.String.Join(", ", Assets.Fields.allFields |> List.map (fun f -> f.Cli))
+    let private tableFormattedFormatStringList = System.String.Join(", ", Assets.Fields.allFields |> List.map (fun f -> f.Table))
+    let private sortFormattedFormatStringList = System.String.Join(", ", Assets.Fields.allFields |> List.map (fun f -> f.SortKey))
        
     type AddArgs =
         | [<MainCommand>] Path of string
@@ -41,10 +43,10 @@ module Arguments =
             member s.Usage =
                 match s with
                 | Filter _ -> "Lists all audiobooks that match the given filter. An empty filter returns all audiobooks."
-                | Cli _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string." formattedFormatStringList
-                | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." formattedFormatStringList
+                | Cli _ -> sprintf "Format the output by supplying a format string. The following placeholders are available: '%s'. Do not forget to quote the format string." cliFormattedFormatStringList
+                | Table _ -> sprintf "Format the output as a table. Use the following placeholders: '%s'. Do not forget to quote the format string. You can only use either 'format' or this option." tableFormattedFormatStringList
                 | Html _ -> "Use a razor template. Required two arguments: input file and output file. See readme for details."
-                | Sort _ -> sprintf "Define the order in which the books are sorted. You can supply multiple parameters and the books will be sorted by all of them in order. The default sort order is ascending. To sort descending add `:d` to the field name (e.g. \"album:d\"). You can use any of the placeholder fields: '%s'" formattedFieldList
+                | Sort _ -> sprintf "Define the order in which the books are sorted. You can supply multiple parameters and the books will be sorted by all of them in order. The default sort order is ascending. To sort descending add `:d` to the field name (e.g. \"album:d\"). You can use any of the placeholder fields: '%s'" sortFormattedFormatStringList
                 | MaxTableColumnWidth _ -> sprintf "Maximum size for table columns. Only used together with the --table option. Minimum value: 4."
                 | Ids _ -> "Only list audio books with the given ids."
                 | Rated -> "Only list books that have been rated."

@@ -4,9 +4,6 @@ module Formatter =
     open b0wter.Fbrary.Assets
     open System.Text.RegularExpressions
     
-    type FormatReplacer = Audiobook.Audiobook -> string option
-    type FormatReplacerWithFieldName = (string * FormatReplacer)
-    
     // If you change the regex you probably need to change `optionalSymbol` as well!
     let optionalElementsRegex = Regex("(\?\?)[^\?]*(\?\?)") 
     let optionalSymbol = "??" // If you change the symbol you need to change the regex as well!
@@ -19,79 +16,6 @@ module Formatter =
     
     let durationFormat = "h\:mm"
     
-    let asReplace (s: string) = sprintf "%s%s%s" replaceSymbol s replaceSymbol
-    
-    let private artist = "artist" |> asReplace
-    let artistFormatString = artist, fun (a: Audiobook.Audiobook) -> a.Artist
-    
-    let private album = "album" |> asReplace
-    let albumFormatString = album, fun (a: Audiobook.Audiobook) -> a.Album
-    
-    let private title = "title" |> asReplace
-    let titleFormatString = title, fun (a: Audiobook.Audiobook) -> a.Title
-    
-    let private albumArtist = "albumartist" |> asReplace
-    let albumArtistFormatString = albumArtist, fun (a: Audiobook.Audiobook) -> a.AlbumArtist
-    
-    let private duration = "duration" |> asReplace
-    let durationFormatString = duration, fun (a: Audiobook.Audiobook) -> a.Duration.ToString(durationFormat) |> Some
-    
-    let private id = "id" |> asReplace
-    let idFormatString = id, fun (a: Audiobook.Audiobook) -> a.Id |> string |> Some
-    
-    let private ratingString = "rating_string" |> asReplace
-    let ratingStringFormatString = ratingString, fun (a: Audiobook.Audiobook) ->
-         match a.Rating |> Option.map Rating.value with
-         | Some i -> Some <| sprintf "%i/%i" i Rating.maxValue
-         | None -> Some <| sprintf "-/%i" Rating.maxValue
-                                                                     
-    let private ratingDots = "rating_dots" |> asReplace
-    let ratingDotsFormatString = ratingDots, fun (a: Audiobook.Audiobook) ->
-         match a.Rating |> Option.map Rating.value with
-         | Some i -> Some <| System.String(RatingSymbols.filledCircle, i) + System.String(RatingSymbols.emptyCircle, Rating.maxValue - i)
-         | None -> Some <| System.String(RatingSymbols.dottedCircle, Rating.maxValue)
-    
-    let private comment = "comment" |> asReplace
-    let commentFormatString = comment, fun (a: Audiobook.Audiobook) -> a.Comment
-    
-    let private genre = "genre" |> asReplace
-    let genreFormatString = genre, fun (a: Audiobook.Audiobook) -> a.Genre
-    
-    let private completedString = "completed_string" |> asReplace
-    let completedStringFormatString = completedString, fun (a: Audiobook.Audiobook) ->
-        match a.State with
-        | Audiobook.State.Aborted -> "abrt"
-        | Audiobook.State.Completed -> "yes"
-        | Audiobook.State.NotCompleted -> "not"
-        |> Some
-        
-    let private completedSymbol = "completed_symbol" |> asReplace
-    let completedSymbolFormatString = completedSymbol, fun (a: Audiobook.Audiobook) ->
-        match a.State with
-        | Audiobook.State.Aborted -> CompletedSymbols.aborted
-        | Audiobook.State.Completed -> CompletedSymbols.completed
-        | Audiobook.State.NotCompleted -> CompletedSymbols.notCompleted
-        |> Some
-    
-    let (allFormatStrings : FormatReplacerWithFieldName list) = [
-        artistFormatString
-        albumFormatString
-        titleFormatString
-        albumArtistFormatString
-        durationFormatString
-        idFormatString
-        ratingStringFormatString
-        ratingDotsFormatString
-        commentFormatString
-        genreFormatString
-        completedSymbolFormatString
-        completedStringFormatString
-    ]
-    let allFormantPlaceholders = allFormatStrings |> List.map fst
-    let allFieldPlaceholders =
-        // TODO: This is rather hacky. Think of a way that this and the format placeholders can be merged properly.
-        (allFormatStrings |> List.map (fst >> (fun s -> s.Replace("%", ""))) |> List.except [ "rating_dots"; "rating_string"; "completed_symbol"; "completed_string" ]) @ [ "rating"; "completed" ]
-    
     module CommandLine =
         
         let defaultFormatString = "(%id%) %album% ??(%artist%) ??%duration%"
@@ -99,23 +23,23 @@ module Formatter =
         /// Tries to replace a single format identifier (%%..%%) with a proper value.
         /// `target` is a simple format identifier like %%artist%%
         let applyToSingleFormatString (ifNotFound: string -> Audiobook.Audiobook -> string) (breakIfNotFound: bool) (target: string) (a: Audiobook.Audiobook) =
-            let rec step (accumulator: string) (remainingReplacers: FormatReplacerWithFieldName list) =
-                match remainingReplacers with
+            let rec step (accumulator: string) (remainingFields: Fields.Field list) =
+                match remainingFields with
                 | [] -> Some accumulator
-                | (expression, replacer) :: tail ->
-                    if expression = target then
-                        match a |> replacer with
+                | field :: tail ->
+                    if field.Cli = target then
+                        match a |> field.Replacer with
                         | Some text ->
-                            let newAccumulator = accumulator.Replace(expression, text)
+                            let newAccumulator = accumulator.Replace(field.Cli, text)
                             step newAccumulator tail
                         | None when breakIfNotFound ->
                             None
                         | None ->
-                            let newAccumulator = ifNotFound expression a
+                            let newAccumulator = ifNotFound field.Cli a
                             step newAccumulator tail
                     else
                         step accumulator tail
-            step target allFormatStrings
+            step target Fields.allFields
             
         /// Replace all format identifiers inside an optional format identifier (??...??) with proper values.
         /// If the given book returns None for any identifier None is returned.
@@ -169,21 +93,6 @@ module Formatter =
         open System
         open b0wter.FSharp
             
-        let tableHeaders = [
-            (artist, "Artist")
-            (album, "Album")
-            (albumArtist, "Album Artist")
-            (title, "Title")
-            (comment, "Comment")
-            (genre, "Genre")
-            (ratingString, "Rating")
-            (ratingDots, "Rating")
-            (duration, "Duration")
-            (id, "Id")
-            (completedSymbol, "Cmpl")
-            (completedString, "Cmpl")
-        ]
-        
         type Cell = {
             Content: string
             Width: int
@@ -274,9 +183,10 @@ module Formatter =
                 
         let createColumns maxColumnWidth (identifiers: string list) (books: Audiobook.Audiobook list) : Column list =
             let createColumn (identifier: string) =
-                let selector = allFormatStrings |> List.find (fun (f, _) -> f = identifier) |> snd
+                let field = Fields.allFields |> List.find (fun f -> f.Table = identifier)
+                let selector = field.Replacer 
                 let values = books |> List.map (selector >> Option.getOrElse String.Empty >> (fun s -> (s, s.Length)))
-                let header = tableHeaders |> List.find (fun (key, _) -> key = identifier) |> snd
+                let header = field.Name 
                 let maxWidth = Math.Min(Math.Max(values |> List.maxBy snd |> snd, header.Length), maxColumnWidth)
                 {
                     Width = maxWidth
@@ -287,7 +197,7 @@ module Formatter =
             
         let apply (maxColumnWidth: int) (tableFormat: string) (books: Audiobook.Audiobook list) =
             let columnIdentifiers = elementRegex.Matches(tableFormat) |> Seq.map (fun m -> m.Value) |> List.ofSeq
-            let validIdentifiers = columnIdentifiers |> Utilities.List.splitBy (fun identifier -> allFormantPlaceholders |> List.contains identifier)
+            let validIdentifiers = columnIdentifiers |> Utilities.List.splitBy (fun identifier -> Fields.allFields |> List.exists (fun f -> f.Table = identifier))
             do if validIdentifiers.NonMatching.IsEmpty then ()
                else printfn "The following format identifiers are unknown and will be skipped: %s" (String.Join(", ", validIdentifiers.NonMatching))
             

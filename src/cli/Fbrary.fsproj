@@ -11,11 +11,11 @@
   <ItemGroup>
     <Compile Include="Version.fs" />
     <Compile Include="Utilities.fs" />
-    <Compile Include="Assets.fs" />
     <Compile Include="IO.fs" />
     <Compile Include="Rating.fs" />
     <Compile Include="Metadata.fs" />
     <Compile Include="Audiobook.fs" />
+    <Compile Include="Assets.fs" />
     <Compile Include="Formatter.fs" />
     <Compile Include="Arguments.fs" />
     <Compile Include="Config.fs" />

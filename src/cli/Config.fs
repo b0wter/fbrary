@@ -48,7 +48,7 @@ module Config =
     type private Sorter = Choice<IEnumerable<Audiobook.Audiobook>, IOrderedEnumerable<Audiobook.Audiobook>> -> IOrderedEnumerable<Audiobook.Audiobook>
     
     let postProcessSortFields (fields: string list) =
-        let allowedNames = [ "id"; "artist"; "albumartist"; "album"; "title"; "genre"; "duration"; "rating"; "completed" ]
+        let allowedNames = Assets.Fields.allFields |> List.map (fun f -> f.SortKey) |> List.distinct
         let nonMatching = fields |> List.filter (fun f -> allowedNames |> List.contains f |> not)
         if nonMatching.IsEmpty then
             fields
@@ -72,24 +72,26 @@ module Config =
             | None -> current
             | Some f -> f >> Choice2Of2 >> current
         
+        // This is not using a `Assets.Fields.allFields |> List.tryFind` approach because the
+        // `Func` is tedious to construct since they have different return types (`int`, `string`, `TimeSpan`).
         match field.ToLower().Replace(":d", "") with
-        | "id" ->
+        | Assets.Fields.idSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, int>(fun b -> b.Id)))
-        | "artist" ->
+        | Assets.Fields.artistSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Artist |?| noneStringValue)))
-        | "albumartist" ->
+        | Assets.Fields.albumArtistSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.AlbumArtist |?| noneStringValue)))
-        | "album" ->
+        | Assets.Fields.albumSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Album |?| noneStringValue)))
-        | "title" ->
+        | Assets.Fields.titleSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Title |?| noneStringValue)))
-        | "genre" ->
+        | Assets.Fields.genreSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, string>(fun b -> b.Genre |?| noneStringValue)))
-        | "duration" ->
+        | Assets.Fields.durationSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, TimeSpan>(fun b -> b.Duration)))
-        | "rating" ->
+        | Assets.Fields.ratingSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, int>(fun b -> b.Rating |> Option.map Rating.value |?| 0)))
-        | "completed" ->
+        | Assets.Fields.completedSortKey ->
             composeF f (fun books -> sorter books (Func<Audiobook.Audiobook, Audiobook.State>(fun b -> b.State)))
         | _ -> 
             failwithf "The field '%s' is unknown." field

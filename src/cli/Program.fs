@@ -233,13 +233,13 @@ module Program =
             do printfn "Updating library field '%s' for entry #%i" field id
             let! book = library |> Library.findById id
             let! update = match field.ToLower() with
-                          | "artist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Artist = Some value })
-                          | "album" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Album = Some value})
-                          | "albumartist" -> Ok (fun (b: Audiobook.Audiobook) -> { b with AlbumArtist = Some value})
-                          | "title" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Title = Some value})
-                          | "genre" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Genre = Some value})
-                          | "comment" -> Ok (fun (b: Audiobook.Audiobook) -> { b with Comment = Some value})
-                          | "rating" ->
+                          | Assets.Fields.artistSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with Artist = Some value })
+                          | Assets.Fields.albumSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with Album = Some value})
+                          | Assets.Fields.albumArtistSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with AlbumArtist = Some value})
+                          | Assets.Fields.titleSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with Title = Some value})
+                          | Assets.Fields.genreSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with Genre = Some value})
+                          | Assets.Fields.commentSortKey -> Ok (fun (b: Audiobook.Audiobook) -> { b with Comment = Some value})
+                          | Assets.Fields.ratingSortKey ->
                              parseRating value
                              |> Result.map (fun r -> (fun (b: Audiobook.Audiobook) -> { b with Rating = Some r}))
                           | _ -> Error (sprintf "The field '%s' is unknown." field)
