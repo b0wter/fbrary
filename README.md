@@ -57,6 +57,9 @@ Currently, the following commands are supported.
 
 *To create your initial library use the `add` command. It will create a new library file if the file does not already exist!*
 
+
+**Hint:** Many commands require you to specify the id of an audiobook. Use the `id` command to quickly find the id of an audiobook without needing to check the `list` command!
+
 Add
 ---
 ```bash
