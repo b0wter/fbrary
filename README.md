@@ -1,3 +1,5 @@
+![.net workflow](https://github.com/b0wter/fbrary/actions/workflows/dotnet.yml/badge.svg)
+
 Audio Book Library
 ==================
 This is a simple CLI tool that allows you to manage your audio book library.
