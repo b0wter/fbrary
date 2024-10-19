@@ -1,9 +1,9 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
-open b0wter.Fbrary.Core
+open Fbrary.Core
 
 module Formatter =
-    open b0wter.Fbrary.Assets
+    open Fbrary.Cli.Assets
     open System.Text.RegularExpressions
     
     // If you change the regex you probably need to change `optionalSymbol` as well!

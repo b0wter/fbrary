@@ -1,10 +1,10 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
 open System
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Collections
-open b0wter.Fbrary.Core.Utilities
-open b0wter.Fbrary.Core
+open Fbrary.Core.Utilities
+open Fbrary.Core
 
 module Library =
     

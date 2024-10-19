@@ -1,12 +1,11 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
 open Argu
 open System
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Operators
-open b0wter.Fbrary
-open b0wter.Fbrary.Core.Utilities
-open b0wter.Fbrary.Core
+open Fbrary.Core.Utilities
+open Fbrary.Core
 module Program =
         
     let getDirectoryFromArgs (argv: string []) =

@@ -1,6 +1,6 @@
-namespace b0wter.Fbrary.Core
+namespace Fbrary.Core
 
-open b0wter.Fbrary.Core.Metadata
+open Fbrary.Core.Metadata
 open System
 open System.IO
 open b0wter.FSharp

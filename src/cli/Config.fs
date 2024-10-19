@@ -1,12 +1,12 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
 open System
 open System.Collections.Generic
 open Argu
-open b0wter.Fbrary.Arguments
+open Fbrary.Cli.Arguments
 open b0wter.FSharp.Operators
 open System.Linq
-open b0wter.Fbrary.Core
+open Fbrary.Core
 
 module Config =
     

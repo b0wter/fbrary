@@ -1,7 +1,7 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
 open System
-open b0wter.Fbrary.Core
+open Fbrary.Core
 
 module GlobalConfig =
     

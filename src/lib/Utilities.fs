@@ -1,4 +1,4 @@
-namespace b0wter.Fbrary.Core
+namespace Fbrary.Core
 
 module Utilities =
     module Parsers =

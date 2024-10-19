@@ -1,8 +1,8 @@
-namespace b0wter.Fbrary.Tests
+namespace Fbrary.Tests
 
 open FsUnit
 open Xunit
-open b0wter.Fbrary.Core
+open Fbrary.Core
 
 module IO =
     

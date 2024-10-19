@@ -1,4 +1,4 @@
-namespace b0wter.Fbrary.Core
+namespace Fbrary.Core
 
 open System
 open System.IO

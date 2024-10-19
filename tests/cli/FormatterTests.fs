@@ -1,10 +1,10 @@
-namespace b0wter.Fbrary.Tests
+namespace Fbrary.Tests
 
 open System
 open FsUnit
 open Xunit
-open b0wter.Fbrary
-open b0wter.Fbrary.Core
+open Fbrary.Cli
+open Fbrary.Core
 
 module Formatter =
 

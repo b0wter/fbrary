@@ -1,4 +1,4 @@
-namespace b0wter.Fbrary
+namespace Fbrary.Cli
 
 open Argu
  

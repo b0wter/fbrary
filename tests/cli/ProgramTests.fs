@@ -1,9 +1,9 @@
-namespace FbraryTests
+namespace Fbrary.Tests
 
 open FsUnit.Xunit
 open Xunit
-open b0wter.Fbrary.GlobalConfig
-open b0wter.Fbrary
+open Fbrary.Cli.GlobalConfig
+open Fbrary.Cli
 
 module ProgramTests =
     
