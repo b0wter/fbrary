@@ -6,6 +6,7 @@ open Argu
 open b0wter.Fbrary.Arguments
 open b0wter.FSharp.Operators
 open System.Linq
+open b0wter.Fbrary.Core
 
 module Config =
     

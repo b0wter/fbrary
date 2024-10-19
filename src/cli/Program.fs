@@ -5,8 +5,8 @@ open System
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Operators
 open b0wter.Fbrary
-open b0wter.Fbrary.Utilities
- 
+open b0wter.Fbrary.Core.Utilities
+open b0wter.Fbrary.Core
 module Program =
         
     let getDirectoryFromArgs (argv: string []) =
@@ -376,7 +376,7 @@ module Program =
             
         result {
             let metadata = library.Audiobooks |> List.collect bookToMetadata
-            do! metadata |> List.map (TagLib.writeMetaData writeConfig) |> List.sequenceResultM |> Result.map ignore
+            do! metadata |> List.map (TagLib.writeMetaData writeConfig.Fields writeConfig.DryRun) |> List.sequenceResultM |> Result.map ignore
         }
         
     let listDetails (config: Config.DetailsConfig) (library: Library.Library) =

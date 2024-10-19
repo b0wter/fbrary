@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>Fbrary.Core</AssemblyName>
+    <RootNamespace>b0wter.Fbrary.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="IO.fs" />
+    <Compile Include="Utilities.fs" />
+    <Compile Include="Rating.fs" />
+    <Compile Include="Metadata.fs" />
+    <Compile Include="Audiobook.fs" />
+    <Compile Include="TagLib.fs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="b0wter.FSharp" Version="4.11.1" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.17.0" />
+    <PackageReference Include="TagLibSharp" Version="2.3.0" />
+  </ItemGroup>
+
+</Project>

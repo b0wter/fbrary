@@ -1,6 +1,7 @@
 namespace b0wter.Fbrary
 
 open System
+open b0wter.Fbrary.Core
 
 module Assets =
     module RatingSymbols =
@@ -274,13 +275,12 @@ module Assets =
                         | Audiobook.State.NotCompleted -> "not"
                         |> Some
         }
-        
         let CompletedAsSymbolField = {
             Abbreviation = "Cmpl"
             Name = "Completed"
-            LongName = "Completed (string)"
-            Cli = "%completed_string%"
-            Table = "%completed_string%"
+            LongName = "Completed (symbol)"
+            Cli = "%completed_symbol%"
+            Table = "%completed_symbol%"
             SortKey = completedSortKey
             Replacer = fun (a: Audiobook.Audiobook) ->
                         match a.State with

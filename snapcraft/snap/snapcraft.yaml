@@ -1,8 +1,9 @@
 name: fbrary
-base: core20
-version: '2.4.0' 
+base: core22
+version: '2.5.0' 
 summary: Manage your audio book library from the command line.
 description: |
+  > New version added `filesexist` command!
   Use this tool to manage your audiobook library from the
   command line. You can can add/list/rate books and mark
   them as completed. The library can be exported in a
@@ -31,8 +32,8 @@ parts:
     source: build
     source-type: local
     stage-packages:
-      - liblttng-ust0
-      - libicu66
+      #      - liblttng-ust0
+        #      - libicu66
 
 apps:
   fbrary:

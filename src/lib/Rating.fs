@@ -1,4 +1,4 @@
-namespace b0wter.Fbrary
+namespace b0wter.Fbrary.Core
 
 module Rating =
     type Rating = Rating of int

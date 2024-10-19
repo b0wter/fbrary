@@ -1,5 +1,7 @@
 namespace b0wter.Fbrary
 
+open b0wter.Fbrary.Core
+
 module Formatter =
     open b0wter.Fbrary.Assets
     open System.Text.RegularExpressions

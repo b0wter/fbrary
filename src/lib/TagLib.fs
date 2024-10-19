@@ -1,6 +1,6 @@
-namespace b0wter.Fbrary
+namespace b0wter.Fbrary.Core
 
-open Metadata
+open b0wter.Fbrary.Core.Metadata
 open System
 open System.IO
 open b0wter.FSharp
@@ -54,14 +54,14 @@ module TagLib =
         | ex ->
             sprintf "%s - %s" file ex.Message |> Error
             
-    let private confContains placeholder (config: Config.WriteConfig) =
-        config.Fields |> List.contains placeholder
+    let private confContains placeholder (fields: string list) =
+        fields |> List.contains placeholder
         
-    let private setIf name _ (empty: 'a) (isActive: Config.WriteConfig -> bool) (set: 'a -> TagLib.File -> unit)
+    let private setIf name _ (empty: 'a) (isActive: string list -> bool) (set: 'a -> TagLib.File -> unit)
                            (get: TagLib.File -> string) (value: 'a option)
-                           (config: Config.WriteConfig) (file: TagLib.File) =
+                           (fields: string list) (file: TagLib.File) =
         // The third parameter `_` is actually the field name and is reserved for future use.
-        if config |> isActive then
+        if fields |> isActive then
             do match value with
                | Some v ->
                    do printfn "Updating value for field '%s' from '%s' to '%s'." name (get file) (value |> Option.map string |> Option.getOrElse "<not set>")
@@ -79,19 +79,19 @@ module TagLib =
     let setTitle = setIf "Title" "TIT2" String.Empty (confContains titlePlaceholder) (fun v t -> t.Tag.Title <- v) (fun t -> t.Tag.Title)
     let setComment = setIf "Comment" "COMM" String.Empty (confContains commentPlaceholder) (fun v t -> t.Tag.Comment <- v) (fun t -> t.Tag.Comment)
         
-    let writeMetaData (config: Config.WriteConfig) (m: Metadata.Metadata) =
-        let config = if config.Fields.IsEmpty then { config with Fields = allPlaceholders } else config
+    let writeMetaData (fields: string list) (isDryRun: bool) (m: Metadata.Metadata) =
+        let fields = if fields.IsEmpty then allPlaceholders else fields
         if File.Exists(m.Filename) then
             try
                 do printfn "Writing tags for %s" m.Filename
                 let file = (TagLib.File.Create(m.Filename)
-                            |> (setArtist m.Artist config)
-                            |> (setAlbum m.Album config)
-                            |> (setAlbumArtist m.AlbumArtist config)
-                            |> (setTitle m.Title config)
-                            |> (setGenre m.Genre config)
-                            |> (setComment m.Comment config))
-                if config.DryRun then
+                            |> (setArtist m.Artist fields)
+                            |> (setAlbum m.Album fields)
+                            |> (setAlbumArtist m.AlbumArtist fields)
+                            |> (setTitle m.Title fields)
+                            |> (setGenre m.Genre fields)
+                            |> (setComment m.Comment fields))
+                if isDryRun then
                     do printfn "This was a dry run. Nothing has been written to the files."
                 else
                     file.Save()

@@ -3,7 +3,8 @@ namespace b0wter.Fbrary
 open System
 open FsToolkit.ErrorHandling
 open b0wter.FSharp.Collections
-open b0wter.Fbrary.Utilities
+open b0wter.Fbrary.Core.Utilities
+open b0wter.Fbrary.Core
 
 module Library =
     

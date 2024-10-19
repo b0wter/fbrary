@@ -4,6 +4,7 @@ open System
 open FsUnit
 open Xunit
 open b0wter.Fbrary
+open b0wter.Fbrary.Core
 
 module Formatter =
 

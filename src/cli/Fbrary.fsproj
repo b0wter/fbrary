@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>b0wter.Fbrary</RootNamespace>
     <AssemblyName>fbrary</AssemblyName>
     <PreserveCompilationContext>true</PreserveCompilationContext>
@@ -10,18 +10,12 @@
   
   <ItemGroup>
     <Compile Include="Version.fs" />
-    <Compile Include="Utilities.fs" />
-    <Compile Include="IO.fs" />
-    <Compile Include="Rating.fs" />
-    <Compile Include="Metadata.fs" />
-    <Compile Include="Audiobook.fs" />
     <Compile Include="Assets.fs" />
     <Compile Include="Formatter.fs" />
     <Compile Include="Arguments.fs" />
     <Compile Include="Config.fs" />
     <Compile Include="GlobalConfig.fs" />
     <Compile Include="Library.fs" />
-    <Compile Include="TagLib.fs" />
     <Compile Include="Program.fs" />
     <Content Include="html_templates\simple_table.cshtml" />
   </ItemGroup>
@@ -29,12 +23,15 @@
   <ItemGroup>
     <PackageReference Include="Argu" Version="6.1.1" />
     <PackageReference Include="b0wter.FSharp" Version="4.11.1" />
-    <PackageReference Include="FsToolkit.ErrorHandling" Version="2.13.0" />
+    <PackageReference Include="FsToolkit.ErrorHandling" Version="4.17.0" />
     <PackageReference Include="FsToolkit.ErrorHandling.JobResult" Version="2.13.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="6.0.2" />
     <PackageReference Include="Microsoft.FSharpLu.Json" Version="0.11.7" />
     <PackageReference Include="RazorLight" Version="2.0.0-rc.4" />
-    <PackageReference Include="TagLibSharp" Version="2.2.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\lib\Fbrary.Core.fsproj" />
   </ItemGroup>
 
 </Project>

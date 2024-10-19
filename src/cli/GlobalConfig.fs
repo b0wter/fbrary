@@ -1,6 +1,7 @@
 namespace b0wter.Fbrary
 
 open System
+open b0wter.Fbrary.Core
 
 module GlobalConfig =
     

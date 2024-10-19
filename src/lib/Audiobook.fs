@@ -1,7 +1,7 @@
-namespace b0wter.Fbrary
+namespace b0wter.Fbrary.Core
 
 open System
-open b0wter.Fbrary.Utilities
+open b0wter.Fbrary.Core.Utilities
 open b0wter.FSharp
 
 module Audiobook =
