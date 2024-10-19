@@ -2,7 +2,6 @@ namespace FbraryTests
 
 open FsUnit.Xunit
 open Xunit
-open System
 open b0wter.Fbrary.GlobalConfig
 open b0wter.Fbrary
 

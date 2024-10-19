@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\cli\Fbrary.fsproj" />
+    <ProjectReference Include="..\..\src\cli\Fbrary.Cli.fsproj" />
   </ItemGroup>
 
 </Project>

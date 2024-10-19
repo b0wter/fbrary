@@ -1,6 +1,5 @@
 namespace b0wter.Fbrary.Tests
 
-open System
 open FsUnit
 open Xunit
 open b0wter.Fbrary.Core
